@@ -1,0 +1,87 @@
+io/dsub/discogsdata/batch/xml/object/XmlArtist.java
+ io.dsub.discogsdata.batch.xml.object.XmlArtist
+ io.dsub.discogsdata.batch.xml.object.XmlArtist$Alias
+ io.dsub.discogsdata.batch.xml.object.XmlArtist$ArtistRef
+ io.dsub.discogsdata.batch.xml.object.XmlArtist$Group
+ io.dsub.discogsdata.batch.xml.object.XmlArtist$Member
+io/dsub/discogsdata/batch/xml/XmlType.java
+ io.dsub.discogsdata.batch.xml.XmlType
+io/dsub/discogsdata/batch/exception/UnknownDumpTypeException.java
+ io.dsub.discogsdata.batch.exception.UnknownDumpTypeException
+io/dsub/discogsdata/batch/process/RepositoriesHolderBean.java
+ io.dsub.discogsdata.batch.process.RepositoriesHolderBean
+io/dsub/discogsdata/batch/xml/XmlUnmarshallerRegistry.java
+ io.dsub.discogsdata.batch.xml.XmlUnmarshallerRegistry
+io/dsub/discogsdata/batch/dump/DumpFetcher.java
+ io.dsub.discogsdata.batch.dump.DumpFetcher
+io/dsub/discogsdata/batch/dump/DumpService.java
+ io.dsub.discogsdata.batch.dump.DumpService
+io/dsub/discogsdata/batch/process/XmlReadListener.java
+ io.dsub.discogsdata.batch.process.XmlReadListener
+io/dsub/discogsdata/batch/process/JobService.java
+ io.dsub.discogsdata.batch.process.JobService
+io/dsub/discogsdata/batch/dump/dto/DumpDto.java
+ io.dsub.discogsdata.batch.dump.dto.DumpDto
+ io.dsub.discogsdata.batch.dump.dto.DumpDto$DumpDtoBuilder
+io/dsub/discogsdata/batch/xml/object/XmlRelease.java
+ io.dsub.discogsdata.batch.xml.object.XmlRelease
+ io.dsub.discogsdata.batch.xml.object.XmlRelease$AlbumArtist
+ io.dsub.discogsdata.batch.xml.object.XmlRelease$Company
+ io.dsub.discogsdata.batch.xml.object.XmlRelease$CreditedArtist
+ io.dsub.discogsdata.batch.xml.object.XmlRelease$Format
+ io.dsub.discogsdata.batch.xml.object.XmlRelease$Identifier
+ io.dsub.discogsdata.batch.xml.object.XmlRelease$Label
+ io.dsub.discogsdata.batch.xml.object.XmlRelease$Master
+ io.dsub.discogsdata.batch.xml.object.XmlRelease$Track
+ io.dsub.discogsdata.batch.xml.object.XmlRelease$Video
+io/dsub/discogsdata/batch/aspect/controller/RestControllerLogger.java
+ io.dsub.discogsdata.batch.aspect.controller.RestControllerLogger
+io/dsub/discogsdata/batch/aspect/service/ServiceExceptionLogger.java
+ io.dsub.discogsdata.batch.aspect.service.ServiceExceptionLogger
+io/dsub/discogsdata/batch/xml/object/XmlMaster.java
+ io.dsub.discogsdata.batch.xml.object.XmlMaster
+ io.dsub.discogsdata.batch.xml.object.XmlMaster$ArtistInfo
+ io.dsub.discogsdata.batch.xml.object.XmlMaster$VideoUrl
+io/dsub/discogsdata/batch/dump/SimpleDumpFetcher.java
+ io.dsub.discogsdata.batch.dump.SimpleDumpFetcher
+io/dsub/discogsdata/batch/aspect/RequestExceptionHandler.java
+ io.dsub.discogsdata.batch.aspect.RequestExceptionHandler
+io/dsub/discogsdata/batch/process/DumpSkipItemPolicy.java
+ io.dsub.discogsdata.batch.process.DumpSkipItemPolicy
+io/dsub/discogsdata/batch/dump/enums/DumpType.java
+ io.dsub.discogsdata.batch.dump.enums.DumpType
+io/dsub/discogsdata/batch/dump/entity/DiscogsDump.java
+ io.dsub.discogsdata.batch.dump.entity.DiscogsDump
+ io.dsub.discogsdata.batch.dump.entity.DiscogsDump$DiscogsDumpBuilder
+io/dsub/discogsdata/batch/config/JobConfiguration.java
+ io.dsub.discogsdata.batch.config.JobConfiguration
+ io.dsub.discogsdata.batch.config.JobConfiguration$1
+ io.dsub.discogsdata.batch.config.JobConfiguration$2
+io/dsub/discogsdata/batch/util/MalformedDateParser.java
+ io.dsub.discogsdata.batch.util.MalformedDateParser
+io/dsub/discogsdata/batch/util/RefCreatorUtil.java
+ io.dsub.discogsdata.batch.util.RefCreatorUtil
+io/dsub/discogsdata/batch/reader/CustomStaxEventItemReader.java
+ io.dsub.discogsdata.batch.reader.CustomStaxEventItemReader
+io/dsub/discogsdata/batch/exception/DumpNotFoundException.java
+ io.dsub.discogsdata.batch.exception.DumpNotFoundException
+io/dsub/discogsdata/batch/process/RelationsHolder.java
+ io.dsub.discogsdata.batch.process.RelationsHolder
+ io.dsub.discogsdata.batch.process.RelationsHolder$Type
+io/dsub/discogsdata/batch/dump/DumpServiceImpl.java
+ io.dsub.discogsdata.batch.dump.DumpServiceImpl
+io/dsub/discogsdata/batch/dump/DumpRepository.java
+ io.dsub.discogsdata.batch.dump.DumpRepository
+io/dsub/discogsdata/batch/aspect/RestControllerAspect.java
+ io.dsub.discogsdata.batch.aspect.RestControllerAspect
+io/dsub/discogsdata/batch/xml/object/XmlObject.java
+ io.dsub.discogsdata.batch.xml.object.XmlObject
+io/dsub/discogsdata/batch/aspect/ServiceAspect.java
+ io.dsub.discogsdata.batch.aspect.ServiceAspect
+io/dsub/discogsdata/batch/BatchApplication.java
+ io.dsub.discogsdata.batch.BatchApplication
+io/dsub/discogsdata/batch/xml/object/XmlLabel.java
+ io.dsub.discogsdata.batch.xml.object.XmlLabel
+ io.dsub.discogsdata.batch.xml.object.XmlLabel$SubLabel
+io/dsub/discogsdata/batch/process/JobExecutionResolver.java
+ io.dsub.discogsdata.batch.process.JobExecutionResolver

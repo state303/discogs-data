@@ -1,0 +1,2 @@
+io/dsub/discogsdata/Application.java
+ io.dsub.discogsdata.Application

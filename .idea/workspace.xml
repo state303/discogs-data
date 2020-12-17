@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="456e6cae-931b-452b-aa02-89c7aa117c79" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.github/workflows/maven.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/schema-mysql.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/DumpDbMgmtApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/batch/CustomStaxEventItemReader.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/batch/ItemReaderProvider.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/batch/ItemWriterProvider.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/batch/processor/ArtistProcessor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/batch/processor/ArtistReferenceProcessor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/batch/processor/ItemSetWriter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/batch/processor/LabelProcessor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/batch/processor/LabelReferenceProcessor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/batch/processor/MasterReleaseProcessor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/batch/processor/MasterReleaseReferenceProcessor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/batch/processor/ReleaseProcessor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/config/AppConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/config/BatchConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/config/DataSourceConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/config/JobConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/config/MongoConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/Artist.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/BaseEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/Label.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/MasterRelease.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/Release.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/intermed/ArtistCredit.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/intermed/CompanyRelease.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/intermed/LabelRelease.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/nested/Catalog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/nested/CatalogRef.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/nested/Company.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/nested/CreditedArtist.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/nested/CreditedRelease.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/nested/Format.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/nested/Identifier.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/nested/Service.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/nested/Track.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/entity/nested/Video.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/repository/ArtistRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/repository/LabelRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/repository/MasterReleaseRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/repository/ReleaseRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/service/ArtistService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/service/LabelService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/service/MasterReleaseService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/service/ReleaseService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/util/ArraysUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/util/DateParser.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/xmlobj/XmlArtist.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/xmlobj/XmlLabel.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/xmlobj/XmlMaster.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/xmlobj/XmlObject.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/io/dsub/dumpdbmgmt/xmlobj/XmlRelease.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/io/dsub/dumpdbmgmt/DumpDbMgmtApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/io/dsub/dumpdbmgmt/entity/ArtistCreditTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/io/dsub/dumpdbmgmt/entity/ArtistTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/io/dsub/dumpdbmgmt/entity/FormatTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/io/dsub/dumpdbmgmt/entity/IdentifierTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/io/dsub/dumpdbmgmt/entity/MasterReleaseTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/io/dsub/dumpdbmgmt/entity/ReleaseTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/io/dsub/dumpdbmgmt/entity/TrackTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/io/dsub/dumpdbmgmt/entity/VideoTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/io/dsub/dumpdbmgmt/util/ArraysUtilTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/resources/application.properties" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeStyleSettingsInfer">
+    <option name="done" value="true" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="discogs-data" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHome" value="$APPLICATION_HOME_DIR$/plugins/maven/lib/maven3" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectCodeStyleSettingsMigration">
+    <option name="version" value="1" />
+  </component>
+  <component name="ProjectId" id="1lnjisPVGyo6w1Y8pQJERcwIrQx" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ExpandSpringBootJavaOptionsPanel" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="nodejs_package_manager_path" value="npm" />
+  </component>
+  <component name="RunManager" selected="Spring Boot.BatchApplication">
+    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
+      <option name="arquillianRunConfiguration">
+        <value>
+          <option name="containerStateName" value="" />
+        </value>
+      </option>
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Application" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="discogs-data.api.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="io.dsub.discogsdata.Application" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BatchApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="discogs-data.batch.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="io.dsub.discogsdata.batch.BatchApplication" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <envs>
+        <env name="spring.datasource.username" value="root" />
+        <env name="spring.datasource.password" value="gozldwmf77" />
+        <env name="spring.datasource.url" value="jdbc:mysql://www.dsub.io:19191/discogs_data" />
+        <env name="spring.datasource.driverClassName" value="com.mysql.cj.jdbc.Driver" />
+      </envs>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Spring Boot.Application" />
+      <item itemvalue="Spring Boot.BatchApplication" />
+    </list>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="456e6cae-931b-452b-aa02-89c7aa117c79" name="Default Changelist" comment="" />
+      <created>1608239879812</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1608239879812</updated>
+      <workItem from="1608239881232" duration="189000" />
+      <workItem from="1608240077212" duration="31000" />
+      <workItem from="1608240148204" duration="385000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="-1817" y="290" width="1073" height="702" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1608240532292">
+      <screen x="-2560" y="101" width="2560" height="1057" />
+    </state>
+    <state x="-1817" y="290" width="1073" height="702" key="#com.intellij.execution.impl.EditConfigurationsDialog/-2560.101.2560.1057/0.23.2560.1417@-2560.101.2560.1057" timestamp="1608240532292" />
+    <state x="-1494" y="352" key="#com.intellij.ide.macro.MacrosDialog" timestamp="1608240222897">
+      <screen x="-2560" y="101" width="2560" height="1057" />
+    </state>
+    <state x="-1494" y="352" key="#com.intellij.ide.macro.MacrosDialog/-2560.101.2560.1057/0.23.2560.1417@-2560.101.2560.1057" timestamp="1608240222897" />
+    <state x="-1263" y="371" key="EnvironmentVariablesDialog" timestamp="1608240530594">
+      <screen x="-2560" y="101" width="2560" height="1057" />
+    </state>
+    <state x="-1263" y="371" key="EnvironmentVariablesDialog/-2560.101.2560.1057/0.23.2560.1417@-2560.101.2560.1057" timestamp="1608240530594" />
+    <state x="-1494" y="413" key="chooseDestDirectoryDialog" timestamp="1608239959380">
+      <screen x="-2560" y="101" width="2560" height="1057" />
+    </state>
+    <state x="-1494" y="413" key="chooseDestDirectoryDialog/-2560.101.2560.1057/0.23.2560.1417@-2560.101.2560.1057" timestamp="1608239959380" />
+  </component>
+</project>
