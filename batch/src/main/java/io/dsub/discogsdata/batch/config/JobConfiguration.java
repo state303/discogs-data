@@ -5,6 +5,7 @@ import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
 import io.dsub.discogsdata.batch.dump.enums.DumpType;
 import io.dsub.discogsdata.batch.process.RelationsHolder;
 import io.dsub.discogsdata.batch.process.RepositoriesHolderBean;
+import io.dsub.discogsdata.batch.process.SimpleRelation;
 import io.dsub.discogsdata.batch.process.XmlReadListener;
 import io.dsub.discogsdata.batch.reader.CustomStaxEventItemReader;
 import io.dsub.discogsdata.batch.xml.object.XmlArtist;
@@ -31,6 +32,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -67,6 +69,7 @@ public class JobConfiguration {
                 .listener(new JobExecutionListener() {
                     public void beforeJob(JobExecution jobExecution) {
                     }
+
                     public void afterJob(JobExecution jobExecution) {
                         System.exit(0);
                     }
@@ -116,7 +119,7 @@ public class JobConfiguration {
     public Step asyncArtistGroupStep() throws Exception {
         return stepBuilderFactory
                 .get("ArtistReferenceProcess : Read -> Process -> Write")
-                .<ArtistGroup, Future<ArtistGroup>>chunk(5000)
+                .<SimpleRelation, Future<ArtistGroup>>chunk(5000)
                 .reader(artistGroupItemReader())
                 .processor(artistGroupProcessor())
                 .writer(artistGroupWriter())
@@ -125,8 +128,8 @@ public class JobConfiguration {
 
     @Bean
     @StepScope
-    public ItemReader<ArtistGroup> artistGroupItemReader() {
-        ConcurrentLinkedQueue<ArtistGroup> queue = relationsHolder().pullCachedList(ArtistGroup.class);
+    public ItemReader<SimpleRelation> artistGroupItemReader() {
+        ConcurrentLinkedQueue<SimpleRelation> queue = relationsHolder().pullSimpleRelationsQueue(ArtistGroup.class);
         return queue::poll;
     }
 
@@ -148,21 +151,16 @@ public class JobConfiguration {
 
 
     @Bean
-    public AsyncItemProcessor<ArtistGroup, ArtistGroup> artistGroupProcessor() throws Exception {
-        AsyncItemProcessor<ArtistGroup, ArtistGroup> asyncItemProcessor = new AsyncItemProcessor<>();
+    public AsyncItemProcessor<SimpleRelation, ArtistGroup> artistGroupProcessor() throws Exception {
+        AsyncItemProcessor<SimpleRelation, ArtistGroup> asyncItemProcessor = new AsyncItemProcessor<>();
         asyncItemProcessor.setTaskExecutor(taskExecutor());
         asyncItemProcessor.setDelegate(item -> {
-            Long artistId = item.getArtistId();
-            Long groupId = item.getGroupId();
-            if (artistId == null ||
-                    groupId == null ||
-                    !artistRepository.existsById(artistId) ||
-                    !artistRepository.existsById(groupId)) {
-                return null;
+            if (isValid(item, artistRepository)) {
+                Artist artist = artistRepository.getOne(item.getParentId());
+                Artist group = artistRepository.getOne(item.getChildId());
+                return ArtistGroup.builder().artist(artist).group(group).build();
             }
-            Artist artist = artistRepository.getOne(item.getArtistId());
-            Artist group = artistRepository.getOne(item.getGroupId());
-            return ArtistGroup.builder().artist(artist).group(group).build();
+            return null;
         });
         asyncItemProcessor.afterPropertiesSet();
         return asyncItemProcessor;
@@ -233,5 +231,12 @@ public class JobConfiguration {
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setThreadNamePrefix("MultiThreaded-");
         return executor;
+    }
+
+    private boolean isValid(SimpleRelation simpleRelation, CrudRepository<?, Long> repository) {
+        return simpleRelation.getParentId() != null &&
+                simpleRelation.getChildId() != null &&
+                repository.existsById(simpleRelation.getParentId()) &&
+                repository.existsById(simpleRelation.getChildId());
     }
 }
