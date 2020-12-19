@@ -89,30 +89,9 @@ public class JobConfiguration {
                 .reader(artistReader())
                 .processor(asyncProcessor())
                 .writer(asyncWriter())
-                .listener(chunkListener())
                 .listener(new XmlReadListener(relationsHolder()))
                 .taskExecutor(taskExecutor())
                 .build();
-    }
-
-    @Bean
-    public ChunkListener chunkListener() {
-        return new ChunkListener() {
-            @Override
-            public void beforeChunk(ChunkContext context) {
-            }
-
-            @Override
-            public void afterChunkError(ChunkContext context) {
-            }
-
-            @Override
-            public void afterChunk(ChunkContext context) {
-                if (context.getStepContext().getStepExecution().getReadCount() > 1000) {
-                    context.setComplete();
-                }
-            }
-        };
     }
 
     @Bean
