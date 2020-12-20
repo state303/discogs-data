@@ -77,49 +77,15 @@ public class XmlArtist extends XmlObject {
         private String name;
         @XmlAttribute(name = "id")
         private Long id;
-
-        public Artist toArtist() {
-            return Artist.builder()
-                    .id(id)
-                    .build();
-        }
-
-        public abstract BaseEntity toRelEntity(Long id);
     }
 
     public static class Alias extends XmlArtist.ArtistRef {
-        public ArtistAlias toRelEntity(Long id) {
-            return ArtistAlias.builder()
-                    .artist(Artist.builder()
-                            .id(id)
-                            .build())
-                    .alias(this.toArtist())
-                    .build();
-        }
     }
 
     public static class Group extends XmlArtist.ArtistRef {
-        public ArtistGroup toRelEntity(Long id) {
-            return ArtistGroup.builder()
-                    .artist(Artist.builder()
-                            .id(id)
-                            .build())
-                    .group(this.toArtist())
-                    .build();
-        }
     }
 
     public static class Member extends XmlArtist.ArtistRef {
-        public ArtistMember toRelEntity(Long id) {
-            return ArtistMember.builder()
-                    .artist(Artist.builder()
-                            .id(id)
-                            .build())
-                    .member(this.toArtist())
-                    .build();
-        }
     }
-
-
 }
 

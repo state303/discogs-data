@@ -4,10 +4,7 @@ import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import io.dsub.discogsdata.common.entity.release.ReleaseItem;
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 @Data
 @Entity
@@ -19,12 +16,24 @@ public class Master extends BaseTimeEntity {
     @Id
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    private ReleaseItem mainReleaseItem;
-
     private short year;
 
     private String title;
 
     private String dataQuality;
+
+    /*
+     * Actual key to be injected. This makes possible to insert WITHOUT fetching
+     * the mapped object first (faster)
+     */
+    @Column(name = "release_item_id")
+    private Long releaseItemId;
+
+    /*
+     * Convenient READ_ONLY access for actually mapped class.
+     * NOTE: mark any FetchType to avoid warning about immutability.
+     */
+    @JoinColumn(name = "release_item_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = ReleaseItem.class, fetch = FetchType.LAZY)
+    private ReleaseItem releaseItem;
 }

@@ -51,10 +51,12 @@ public class JobConfig {
 
     private final DumpService dumpService;
     private final ArtistRepository artistRepository;
+    private final RelationsHolder relationsHolder;
     private final RepositoriesHolderBean repositoriesHolderBean;
     private final StepBuilderFactory stepBuilderFactory;
     private final JobBuilderFactory jobBuilderFactory;
     private final ThreadPoolTaskExecutor taskExecutor;
+    private final XmlReadListener xmlReadListener;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // JOBS AND STEPS
@@ -89,7 +91,7 @@ public class JobConfig {
                 .reader(artistReader())
                 .processor(asyncProcessor())
                 .writer(asyncWriter())
-                .listener(new XmlReadListener(relationsHolder()))
+                .listener(xmlReadListener)
                 .taskExecutor(taskExecutor)
                 .build();
     }
@@ -102,13 +104,25 @@ public class JobConfig {
                 .reader(artistGroupItemReader())
                 .processor(artistGroupProcessor())
                 .writer(artistGroupWriter())
+                .listener(new StepExecutionListener() {
+                    @Override
+                    public void beforeStep(StepExecution stepExecution) {
+                        System.out.println(relationsHolder.pullSimpleRelationsQueue(XmlArtist.Group.class).size());
+                    }
+
+                    @Override
+                    public ExitStatus afterStep(StepExecution stepExecution) {
+                        return null;
+                    }
+                })
+                .taskExecutor(taskExecutor)
                 .build();
     }
 
     @Bean
     @StepScope
     public ItemReader<SimpleRelation> artistGroupItemReader() {
-        ConcurrentLinkedQueue<SimpleRelation> queue = relationsHolder().pullSimpleRelationsQueue(XmlArtist.Group.class);
+        ConcurrentLinkedQueue<SimpleRelation> queue = relationsHolder.pullSimpleRelationsQueue(XmlArtist.Group.class);
         return queue::poll;
     }
 
@@ -133,11 +147,9 @@ public class JobConfig {
     public AsyncItemProcessor<SimpleRelation, ArtistGroup> artistGroupProcessor() throws Exception {
         AsyncItemProcessor<SimpleRelation, ArtistGroup> asyncItemProcessor = new AsyncItemProcessor<>();
         asyncItemProcessor.setTaskExecutor(taskExecutor);
-        asyncItemProcessor.setDelegate(item -> {
-            if (isValid(item, artistRepository)) {
-                Artist artist = artistRepository.getOne(item.getParentId());
-                Artist group = artistRepository.getOne(item.getChildId());
-                return ArtistGroup.builder().artist(artist).group(group).build();
+        asyncItemProcessor.setDelegate(simpleRelation -> {
+            if (isValid(simpleRelation, artistRepository)) {
+                return simpleRelation.toArtistGroup();
             }
             return null;
         });
@@ -167,13 +179,10 @@ public class JobConfig {
 
     @Bean
     public ItemReader<XmlArtist> artistReader() throws Exception {
-
         DiscogsDump artistDump = dumpService.getMostRecentDumpByType(DumpType.ARTIST);
-
         Jaxb2Marshaller jaxb2Marshaller = new Jaxb2Marshaller();
         jaxb2Marshaller.setClassesToBeBound(XmlArtist.class);
         jaxb2Marshaller.afterPropertiesSet();
-
         StaxEventItemReader<XmlArtist> reader = new StaxEventItemReaderBuilder<XmlArtist>()
                 .resource(new InputStreamResource(new GZIPInputStream(new URL(artistDump.getResourceUrl()).openStream())))
                 .name(artistDump.getRootElementName() + " reader: " + artistDump.getEtag())
@@ -181,7 +190,7 @@ public class JobConfig {
                 .unmarshaller(jaxb2Marshaller)
                 .build();
 
-        return new CustomStaxEventItemReader<>(reader, relationsHolder());
+        return new CustomStaxEventItemReader<>(reader, relationsHolder);
     }
 
     @Bean
@@ -190,11 +199,6 @@ public class JobConfig {
         writer.setRepository(artistRepository);
         writer.afterPropertiesSet();
         return writer;
-    }
-
-    @Bean
-    public RelationsHolder relationsHolder() {
-        return new RelationsHolder();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////

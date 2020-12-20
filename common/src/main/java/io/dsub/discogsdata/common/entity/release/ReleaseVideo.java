@@ -1,6 +1,7 @@
 package io.dsub.discogsdata.common.entity.release;
 
-import io.dsub.discogsdata.common.entity.artist.Artist;
+import io.dsub.discogsdata.common.entity.Identifier;
+import io.dsub.discogsdata.common.entity.Video;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import lombok.*;
 
@@ -13,30 +14,26 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReleaseCreditedArtist extends BaseTimeEntity {
-
+public class ReleaseVideo extends BaseTimeEntity {
     @Data
     @Embeddable
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ReleaseCreditedArtistId implements Serializable {
+    public static class ReleaseVideoId implements Serializable {
         @Column(name = "release_item_id")
         private Long releaseItemId;
-        @Column(name = "artist_id")
-        private Long artistId;
+        @Column(name = "video_id")
+        private Long video_id;
     }
 
     @EmbeddedId
-    private ReleaseCreditedArtistId releaseCreditedArtistId;
+    private ReleaseVideoId releaseVideoId;
 
     @JoinColumn(name = "release_item_id", insertable = false, updatable = false)
     @ManyToOne(targetEntity = ReleaseItem.class, fetch = FetchType.EAGER)
     private ReleaseItem releaseItem;
 
-    @JoinColumn(name = "artist_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = Artist.class, fetch = FetchType.EAGER)
-    private Artist artist;
-
-    @Column(columnDefinition = "TEXT")
-    private String role;
+    @JoinColumn(name = "video_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Video.class, fetch = FetchType.EAGER)
+    private Video video;
 }

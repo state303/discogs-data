@@ -24,7 +24,18 @@ public class Track {
     @Column(length = 1000)
     private String duration;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "release_id")
+    /*
+     * Actual key to be injected. This makes possible to insert WITHOUT fetching
+     * the mapped object first (faster)
+     */
+    @Column(name = "release_item_id")
+    private Long releaseItemId;
+
+    /*
+     * Convenient READ_ONLY access for actually mapped class.
+     * NOTE: mark any FetchType to avoid warning about immutability.
+     */
+    @JoinColumn(name = "release_item_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = ReleaseItem.class, fetch = FetchType.LAZY)
     private ReleaseItem releaseItem;
 }

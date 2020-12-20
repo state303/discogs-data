@@ -8,8 +8,10 @@ import io.dsub.discogsdata.common.entity.artist.ArtistMember;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ItemReadListener;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class XmlReadListener implements ItemReadListener<XmlObject> {
 

@@ -67,7 +67,7 @@ public class XmlRelease extends XmlObject {
 
     @XmlElementWrapper(name = "companies")
     @XmlElement(name = "company")
-    private Set<Company> companies = new HashSet<>();
+    private Set<ReleaseWork> releaseWorks = new HashSet<>();
 
     @XmlElementWrapper(name = "videos")
     @XmlElement(name = "video")
@@ -156,7 +156,7 @@ public class XmlRelease extends XmlObject {
 
     @Data
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class Company {
+    public static class ReleaseWork {
         @XmlElement(name = "id")
         private Long id;
         @XmlElement(name = "name")

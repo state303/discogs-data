@@ -31,8 +31,19 @@ public class ReleaseItem extends BaseTimeEntity {
 
     private String dataQuality;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "master_id")
+    /*
+     * Actual mapping value to be injected. This makes possible to insert WITHOUT fetching
+     * the mapped object first (faster)
+     */
+    @Column(name = "master_id")
+    private Long masterId;
+
+    /*
+     * Convenient READ_ONLY access for actually mapped class.
+     * NOTE: mark any FetchType to avoid warning about immutability.
+     */
+    @JoinColumn(name = "master_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Master.class, fetch = FetchType.LAZY)
     private Master master;
 
     private Instant releaseDate;

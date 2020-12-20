@@ -28,8 +28,8 @@ public class Label extends BaseTimeEntity {
     private String profile;
 
     private String dataQuality;
+
     @ElementCollection
     @Builder.Default
     private List<String> urls = new ArrayList<>();
-
 }

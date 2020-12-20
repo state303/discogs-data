@@ -1,28 +1,39 @@
 package io.dsub.discogsdata.common.entity.master;
 
+import io.dsub.discogsdata.common.entity.Genre;
 import io.dsub.discogsdata.common.entity.Style;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
+import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Data
 @Entity
 @Builder
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class MasterStyle {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+public class MasterStyle extends BaseTimeEntity {
+    @Data
+    @Embeddable
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MasterStyleId implements Serializable {
+        @Column(name = "master_id")
+        private Long masterId;
+        @Column(name = "style_id")
+        private Long genreId;
+    }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "master_id")
+    @EmbeddedId
+    private MasterStyleId masterStyleId;
+
+    @JoinColumn(name = "master_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Master.class, fetch = FetchType.EAGER)
     private Master master;
 
-    @ManyToOne
-    @JoinColumn(name = "style_id")
+    @JoinColumn(name = "style_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Style.class, fetch = FetchType.EAGER)
     private Style style;
 }

@@ -23,8 +23,4 @@ public class Video {
     private String description;
     @Column(columnDefinition = "TEXT")
     private String url;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "release_id")
-    private ReleaseItem releaseItem;
 }

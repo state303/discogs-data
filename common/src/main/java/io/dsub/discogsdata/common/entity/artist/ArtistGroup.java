@@ -4,6 +4,7 @@ import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Data
 @Entity
@@ -12,23 +13,30 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ArtistGroup extends BaseTimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "artist_id")
+    @Data
+    @Embeddable
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ArtistGroupId implements Serializable {
+        @Column(name = "artist_id")
+        private Long artistId;
+        @Column(name = "group_id")
+        private Long groupId;
+    }
+
+    @EmbeddedId
+    private ArtistGroupId artistGroupId;
+
+    /*
+     * Convenient READ_ONLY access for actually mapped class.
+     * NOTE: mark any FetchType to avoid warning about immutability.
+     */
+    @JoinColumn(name = "artist_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Artist.class, fetch = FetchType.EAGER)
     private Artist artist;
 
-    @ManyToOne
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Artist.class, fetch = FetchType.EAGER)
     private Artist group;
-
-    public Long getArtistId() {
-        return this.artist.getId();
-    }
-
-    public Long getGroupId() {
-        return this.group.getId();
-    }
 }

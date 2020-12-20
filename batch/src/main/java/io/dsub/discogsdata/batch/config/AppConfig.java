@@ -1,5 +1,6 @@
 package io.dsub.discogsdata.batch.config;
 
+import io.dsub.discogsdata.batch.process.RelationsHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -19,5 +20,10 @@ public class AppConfig {
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setThreadNamePrefix("MultiThreaded-");
         return executor;
+    }
+
+    @Bean
+    public RelationsHolder relationsHolder() {
+        return new RelationsHolder();
     }
 }

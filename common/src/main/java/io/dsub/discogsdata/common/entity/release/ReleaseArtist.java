@@ -1,28 +1,40 @@
 package io.dsub.discogsdata.common.entity.release;
 
 import io.dsub.discogsdata.common.entity.artist.Artist;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
+import io.dsub.discogsdata.common.entity.label.Label;
+import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Data
 @Entity
 @Builder
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReleaseArtist {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+public class ReleaseArtist extends BaseTimeEntity {
 
-    @ManyToOne
-    @JoinColumn(name = "release_id")
+    @Data
+    @Embeddable
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReleaseArtistId implements Serializable {
+        @Column(name = "release_item_id")
+        private Long releaseItemId;
+        @Column(name = "artist_id")
+        private Long artistId;
+    }
+
+    @EmbeddedId
+    private ReleaseArtistId releaseArtistId;
+
+    @JoinColumn(name = "release_item_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = ReleaseItem.class, fetch = FetchType.EAGER)
     private ReleaseItem releaseItem;
 
-    @ManyToOne
-    @JoinColumn(name = "artist_id")
+    @JoinColumn(name = "artist_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Artist.class, fetch = FetchType.EAGER)
     private Artist artist;
 }

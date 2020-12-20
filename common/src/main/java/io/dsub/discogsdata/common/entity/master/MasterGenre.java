@@ -1,29 +1,40 @@
 package io.dsub.discogsdata.common.entity.master;
 
 import io.dsub.discogsdata.common.entity.Genre;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.dsub.discogsdata.common.entity.artist.Artist;
+import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
+import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Data
 @Entity
 @Builder
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class MasterGenre {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+public class MasterGenre extends BaseTimeEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "master_id")
+    @Data
+    @Embeddable
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MasterGenreId implements Serializable {
+        @Column(name = "master_id")
+        private Long masterId;
+        @Column(name = "genre_id")
+        private Long genreId;
+    }
+
+    @EmbeddedId
+    private MasterGenreId masterGenreId;
+
+    @JoinColumn(name = "master_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Master.class, fetch = FetchType.EAGER)
     private Master master;
 
-    @ManyToOne
-    @JoinColumn(name = "genre_id")
+    @JoinColumn(name = "genre_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Genre.class, fetch = FetchType.EAGER)
     private Genre genre;
-
 }
