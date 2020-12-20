@@ -30,6 +30,7 @@ import org.springframework.batch.item.xml.StaxEventItemReader;
 import org.springframework.batch.item.xml.builder.StaxEventItemReaderBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.repository.CrudRepository;
@@ -46,13 +47,14 @@ import java.util.zip.GZIPInputStream;
 @Configuration
 @EnableBatchProcessing
 @RequiredArgsConstructor
-public class JobConfiguration {
+public class JobConfig {
 
     private final DumpService dumpService;
     private final ArtistRepository artistRepository;
     private final RepositoriesHolderBean repositoriesHolderBean;
     private final StepBuilderFactory stepBuilderFactory;
     private final JobBuilderFactory jobBuilderFactory;
+    private final ThreadPoolTaskExecutor taskExecutor;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // JOBS AND STEPS
@@ -67,9 +69,7 @@ public class JobConfiguration {
                 .next(asyncArtistGroupStep())
                 .end()
                 .listener(new JobExecutionListener() {
-                    public void beforeJob(JobExecution jobExecution) {
-                    }
-
+                    public void beforeJob(JobExecution jobExecution) {}
                     public void afterJob(JobExecution jobExecution) {
                         System.exit(0);
                     }
@@ -90,7 +90,7 @@ public class JobConfiguration {
                 .processor(asyncProcessor())
                 .writer(asyncWriter())
                 .listener(new XmlReadListener(relationsHolder()))
-                .taskExecutor(taskExecutor())
+                .taskExecutor(taskExecutor)
                 .build();
     }
 
@@ -132,7 +132,7 @@ public class JobConfiguration {
     @Bean
     public AsyncItemProcessor<SimpleRelation, ArtistGroup> artistGroupProcessor() throws Exception {
         AsyncItemProcessor<SimpleRelation, ArtistGroup> asyncItemProcessor = new AsyncItemProcessor<>();
-        asyncItemProcessor.setTaskExecutor(taskExecutor());
+        asyncItemProcessor.setTaskExecutor(taskExecutor);
         asyncItemProcessor.setDelegate(item -> {
             if (isValid(item, artistRepository)) {
                 Artist artist = artistRepository.getOne(item.getParentId());
@@ -148,7 +148,7 @@ public class JobConfiguration {
     @Bean
     public AsyncItemProcessor<XmlArtist, Artist> asyncProcessor() {
         AsyncItemProcessor<XmlArtist, Artist> asyncItemProcessor = new AsyncItemProcessor<>();
-        asyncItemProcessor.setTaskExecutor(taskExecutor());
+        asyncItemProcessor.setTaskExecutor(taskExecutor);
         asyncItemProcessor.setDelegate(artistProcessor());
         return asyncItemProcessor;
     }
@@ -200,17 +200,6 @@ public class JobConfiguration {
     ////////////////////////////////////////////////////////////////////////////////////
     // ARTIST STEP, READER, PROCESSOR, WRITER
     ////////////////////////////////////////////////////////////////////////////////////
-
-    @Bean
-    public TaskExecutor taskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5);
-        executor.setMaxPoolSize(64);
-        executor.setQueueCapacity(500);
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        executor.setThreadNamePrefix("MultiThreaded-");
-        return executor;
-    }
 
     private boolean isValid(SimpleRelation simpleRelation, CrudRepository<?, Long> repository) {
         return simpleRelation.getParentId() != null &&
