@@ -26,19 +26,7 @@ public class XmlReadListener implements ItemReadListener<XmlObject> {
     @Override
     public void afterRead(XmlObject item) {
         if (item instanceof XmlArtist) {
-            XmlArtist artist = (XmlArtist) item;
-            if (artist.getProfile().contains("[b]DO NOT USE.[/b]")) {
-                return;
-            }
-            artist.getRelations().forEach(ref -> {
-                if (ref instanceof XmlArtist.Group) {
-                    relationsHolder.putEntity(ArtistGroup.class, ((XmlArtist.Group) ref).toRelEntity(artist.getId()));
-                } else if (ref instanceof XmlArtist.Alias) {
-                    relationsHolder.putEntity(ArtistAlias.class, ((XmlArtist.Alias) ref).toRelEntity(artist.getId()));
-                } else if (ref instanceof XmlArtist.Member) {
-                    relationsHolder.putEntity(ArtistMember.class, ((XmlArtist.Member) ref).toRelEntity(artist.getId()));
-                }
-            });
+            updateArtistRefs(item);
         }
     }
 
@@ -47,15 +35,9 @@ public class XmlReadListener implements ItemReadListener<XmlObject> {
         if (artist.getProfile().contains("[b]DO NOT USE.[/b]")) {
             return;
         }
-        artist.getRelations().forEach(ref -> {
-            if (ref instanceof XmlArtist.Group) {
-                relationsHolder.putEntity(ArtistGroup.class, ((XmlArtist.Group) ref).toRelEntity(artist.getId()));
-            } else if (ref instanceof XmlArtist.Alias) {
-                relationsHolder.putEntity(ArtistAlias.class, ((XmlArtist.Alias) ref).toRelEntity(artist.getId()));
-            } else if (ref instanceof XmlArtist.Member) {
-                relationsHolder.putEntity(ArtistMember.class, ((XmlArtist.Member) ref).toRelEntity(artist.getId()));
-            }
-        });
+        artist.getRelations().forEach(
+                ref -> relationsHolder.addSimpleRelation(
+                        ref.getClass(), new SimpleRelation(artist.getId(), ref.getId())));
     }
 
 

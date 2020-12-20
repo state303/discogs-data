@@ -108,7 +108,7 @@ public class JobConfiguration {
     @Bean
     @StepScope
     public ItemReader<SimpleRelation> artistGroupItemReader() {
-        ConcurrentLinkedQueue<SimpleRelation> queue = relationsHolder().pullSimpleRelationsQueue(ArtistGroup.class);
+        ConcurrentLinkedQueue<SimpleRelation> queue = relationsHolder().pullSimpleRelationsQueue(XmlArtist.Group.class);
         return queue::poll;
     }
 

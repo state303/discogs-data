@@ -39,24 +39,7 @@ public class CustomStaxEventItemReader<T> implements ItemReader<T>, ItemStream, 
             return null;
         }
 
-        T item = nestedReader.read();
-
-        if (item instanceof XmlArtist) {
-            XmlArtist artist = (XmlArtist) item;
-            if (artist.getProfile().contains("[b]DO NOT USE.[/b]")) {
-                return item;
-            }
-            artist.getRelations().forEach(ref -> {
-                if (ref instanceof XmlArtist.Group) {
-                    relationsHolder.putEntity(ArtistGroup.class, ((XmlArtist.Group) ref).toRelEntity(artist.getId()));
-                } else if (ref instanceof XmlArtist.Alias) {
-                    relationsHolder.putEntity(ArtistAlias.class, ((XmlArtist.Alias) ref).toRelEntity(artist.getId()));
-                } else if (ref instanceof XmlArtist.Member) {
-                    relationsHolder.putEntity(ArtistMember.class, ((XmlArtist.Member) ref).toRelEntity(artist.getId()));
-                }
-            });
-        }
-        return item;
+        return nestedReader.read();
     }
 
     @Override
