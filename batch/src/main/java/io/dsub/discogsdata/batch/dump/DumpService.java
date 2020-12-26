@@ -3,10 +3,8 @@ package io.dsub.discogsdata.batch.dump;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
 import io.dsub.discogsdata.batch.dump.enums.DumpType;
 import io.dsub.discogsdata.batch.exception.DumpNotFoundException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface DumpService {
@@ -16,17 +14,15 @@ public interface DumpService {
 
     DiscogsDump getMostRecentDumpByType(DumpType type);
 
-    List<DiscogsDump> getDumpListInRange(LocalDate from, LocalDate to);
+    List<DiscogsDump> getDumpListInRange(OffsetDateTime from, OffsetDateTime to);
 
-    List<DiscogsDump> getDumpListInRange(DiscogsDump dump);
+    DiscogsDump getDumpByDumpTypeInRange(DumpType dumpType, OffsetDateTime from, OffsetDateTime to);
+
+    List<DiscogsDump> getDumpListInYearMonth(int year, int month);
 
     List<DiscogsDump> getLatestCompletedDumpSet();
 
     List<DiscogsDump> getAllDumps();
 
     boolean isExistsByEtag(String etag);
-
-    boolean isUpdatedToday();
-
-    Page<?> getAllDumpsByPage(Pageable pageable);
 }

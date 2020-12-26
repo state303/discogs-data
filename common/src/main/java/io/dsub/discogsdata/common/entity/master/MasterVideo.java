@@ -5,7 +5,6 @@ import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import lombok.*;
 
 import javax.persistence.*;
-import java.io.Serializable;
 
 @Data
 @Entity
@@ -14,25 +13,16 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MasterVideo extends BaseTimeEntity {
-    @Data
-    @Embeddable
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MasterVideoId implements Serializable {
-        @Column(name = "master_id")
-        private Long masterId;
-        @Column(name = "video_id")
-        private Long videoId;
-    }
 
-    @EmbeddedId
-    private MasterVideoId masterVideoId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @JoinColumn(name = "master_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = Master.class, fetch = FetchType.EAGER)
+    @JoinColumn(name = "master_id")
+    @ManyToOne
     private Master master;
 
-    @JoinColumn(name = "video_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = Video.class, fetch = FetchType.EAGER)
+    @JoinColumn(name = "video_id")
+    @ManyToOne
     private Video video;
 }

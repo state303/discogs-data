@@ -1,11 +1,14 @@
 package io.dsub.discogsdata.batch.step.master;
 
 import io.dsub.discogsdata.batch.process.RelationsHolder;
-import io.dsub.discogsdata.common.entity.Style;
-import io.dsub.discogsdata.common.entity.master.MasterStyle;
-import io.dsub.discogsdata.common.repository.StyleRepository;
+import io.dsub.discogsdata.common.entity.Genre;
+import io.dsub.discogsdata.common.entity.master.MasterGenre;
+import io.dsub.discogsdata.common.entity.master.MasterGenre;
+import io.dsub.discogsdata.common.repository.GenreRepository;
+import io.dsub.discogsdata.common.repository.GenreRepository;
+import io.dsub.discogsdata.common.repository.master.MasterGenreRepository;
 import io.dsub.discogsdata.common.repository.master.MasterRepository;
-import io.dsub.discogsdata.common.repository.master.MasterStyleRepository;
+import io.dsub.discogsdata.common.repository.master.MasterGenreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
@@ -26,66 +29,67 @@ import java.util.concurrent.Future;
 
 @Configuration
 @RequiredArgsConstructor
-public class MasterStyleStepConfigurer {
+public class MasterGenreStepConfigurer {
     private final StepBuilderFactory stepBuilderFactory;
     private final ThreadPoolTaskExecutor taskExecutor;
     private final RelationsHolder relationsHolder;
-    private final MasterStyleRepository masterStyleRepository;
+    private final MasterGenreRepository masterGenreRepository;
     private final MasterRepository masterRepository;
-    private final StyleRepository styleRepository;
-    private final Map<String, Long> stylesCache;
+    private final GenreRepository genreRepository;
+    private final Map<String, Long> genresCache;
 
     @Bean
     @StepScope
-    public Step masterStyleStep(@Value("#{jobParameters['master']}") String etag, @Value("#{jobParameters['chunkSize']}") int chunkSize) throws Exception {
-        return stepBuilderFactory.get("masterStyleStep " + etag)
-                .<MasterStyle, Future<MasterStyle>>chunk(chunkSize)
-                .reader(masterStyleReader())
-                .processor(masterStyleProcessor())
-                .writer(masterStyleWriter())
+    public Step masterGenreStep(@Value("#{jobParameters['master']}") String etag, @Value("#{jobParameters['chunkSize']}") int chunkSize) throws Exception {
+        return stepBuilderFactory.get("masterGenreStep " + etag)
+                .<MasterGenre, Future<MasterGenre>>chunk(chunkSize)
+                .reader(masterGenreReader())
+                .processor(masterGenreProcessor())
+                .writer(masterGenreWriter())
                 .build();
     }
 
     @Bean
-    public ItemReader<MasterStyle> masterStyleReader() {
-        ConcurrentLinkedQueue<MasterStyle> queue =
-                relationsHolder.pullObjectRelationsQueue(MasterStyle.class);
+    @StepScope
+    public ItemReader<MasterGenre> masterGenreReader() {
+        ConcurrentLinkedQueue<MasterGenre> queue =
+                relationsHolder.pullObjectRelationsQueue(MasterGenre.class);
         return queue::poll;
     }
 
     @Bean
-    public AsyncItemProcessor<MasterStyle, MasterStyle> masterStyleProcessor() throws Exception {
-        ItemProcessor<MasterStyle, MasterStyle> syncProcessor = item -> {
+    public AsyncItemProcessor<MasterGenre, MasterGenre> masterGenreProcessor() throws Exception {
+        ItemProcessor<MasterGenre, MasterGenre> syncProcessor = item -> {
             Long masterId = item.getMaster().getId();
-            String styleStr = item.getStyle().getName();
-            if (masterId == null || styleStr == null || !masterRepository.existsById(masterId)) {
+            String genreStr = item.getGenre().getName();
+            if (masterId == null || genreStr == null || !masterRepository.existsById(masterId)) {
                 return null;
             }
-            if (!stylesCache.containsKey(styleStr)) {
-                Style entity = styleRepository.save(item.getStyle());
-                stylesCache.put(entity.getName(), entity.getId());
+            if (!genresCache.containsKey(genreStr)) {
+                Genre entity = genreRepository.save(item.getGenre());
+                genresCache.put(entity.getName(), entity.getId());
             }
-            MasterStyle masterStyle = new MasterStyle();
-            masterStyle.setStyle(styleRepository.getOne(stylesCache.get(styleStr)));
-            masterStyle.setMaster(masterRepository.getOne(masterId));
-            return masterStyle;
+            MasterGenre masterGenre = new MasterGenre();
+            masterGenre.setGenre(genreRepository.getOne(genresCache.get(genreStr)));
+            masterGenre.setMaster(masterRepository.getOne(masterId));
+            return masterGenre;
         };
 
-        AsyncItemProcessor<MasterStyle, MasterStyle> masterStyleProcessor = new AsyncItemProcessor<>();
-        masterStyleProcessor.setDelegate(syncProcessor);
-        masterStyleProcessor.setTaskExecutor(taskExecutor);
-        masterStyleProcessor.afterPropertiesSet();
-        return masterStyleProcessor;
+        AsyncItemProcessor<MasterGenre, MasterGenre> masterGenreProcessor = new AsyncItemProcessor<>();
+        masterGenreProcessor.setDelegate(syncProcessor);
+        masterGenreProcessor.setTaskExecutor(taskExecutor);
+        masterGenreProcessor.afterPropertiesSet();
+        return masterGenreProcessor;
     }
 
     @Bean
-    public AsyncItemWriter<MasterStyle> masterStyleWriter() throws Exception {
-        RepositoryItemWriter<MasterStyle> syncWriter = new RepositoryItemWriter<>();
-        syncWriter.setRepository(masterStyleRepository);
+    public AsyncItemWriter<MasterGenre> masterGenreWriter() throws Exception {
+        RepositoryItemWriter<MasterGenre> syncWriter = new RepositoryItemWriter<>();
+        syncWriter.setRepository(masterGenreRepository);
         syncWriter.afterPropertiesSet();
-        AsyncItemWriter<MasterStyle> masterStyleWriter = new AsyncItemWriter<>();
-        masterStyleWriter.setDelegate(syncWriter);
-        masterStyleWriter.afterPropertiesSet();
-        return masterStyleWriter;
+        AsyncItemWriter<MasterGenre> masterGenreWriter = new AsyncItemWriter<>();
+        masterGenreWriter.setDelegate(syncWriter);
+        masterGenreWriter.afterPropertiesSet();
+        return masterGenreWriter;
     }
 }

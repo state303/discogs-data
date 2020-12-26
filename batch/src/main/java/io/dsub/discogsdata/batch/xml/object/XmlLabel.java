@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.xml.bind.annotation.*;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -24,15 +25,29 @@ public class XmlLabel extends XmlObject {
     private String dataQuality;
     @XmlElementWrapper(name = "urls")
     @XmlElement(name = "url")
-    private Set<String> urls;
+    private List<String> urls;
     @XmlElementWrapper(name = "sublabels")
     @XmlElement(name = "label")
-    private Set<SubLabel> SubLabels;
+    private List<SubLabel> SubLabels;
 
     @Override
     public Label toEntity() {
+
+        String[] fields = new String[]{name, contactInfo, dataQuality, profile};
+
+        for (int i = 0; i < fields.length; i++) {
+            if (fields[i] != null && fields[i].isBlank()) {
+                fields[i] = null;
+            }
+        }
+
         return Label.builder()
                 .id(id)
+                .name(fields[0])
+                .contactInfo(fields[1])
+                .profile(fields[2])
+                .profile(fields[3])
+                .urls(urls)
                 .build();
     }
 

@@ -1,143 +1,104 @@
 package io.dsub.discogsdata.batch.util;
 
+import io.dsub.discogsdata.batch.dump.DumpDependencyResolver;
 import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
-import io.dsub.discogsdata.batch.dump.enums.DumpType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.jni.Local;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Slf4j
 @Component
-@ConditionalOnMissingBean(value = DiscogsJobParameterFormatter.class)
 @RequiredArgsConstructor
-public class SimpleDiscogsJobParameterFormatter implements DiscogsJobParameterFormatter {
+public class SimpleDiscogsJobParameterResolver implements DiscogsJobParameterResolver {
 
     private static final Long DEFAULT_CHUNK_SIZE = 10000L;
     private static final String CHUNK_SIZE_KEY = "chunkSize";
     private static final String YEAR_MONTH_KEY = "yearMonth";
+    private static final String TYPES_KEY = "types";
     private static final String ETAG_KEY = "etag";
     private final DumpService dumpService;
+    private final DumpDependencyResolver resolver;
 
     @Override
-    public JobParameters format(JobParameters parameters) {
+    public JobParameters resolve(JobParameters parameters) {
         JobParametersBuilder builder = new JobParametersBuilder();
         builder.addLong(CHUNK_SIZE_KEY, extractChunkSize(parameters));
-        if (isEtagPresent(parameters)) {
 
+        if (isValidEntryPresent(parameters, ETAG_KEY)) {
+            builder.addJobParameters(extractEtagList(parameters));
+            return builder.toJobParameters();
         }
 
-        return null;
-    }
+        String yearMonthKey = getKeyEqualsIgnoreCase(parameters, YEAR_MONTH_KEY);
+        String typesKey = getKeyEqualsIgnoreCase(parameters, TYPES_KEY);
+        boolean haveYearMonth = isValidEntryPresent(parameters, YEAR_MONTH_KEY);
+        boolean haveTypes = isValidEntryPresent(parameters, TYPES_KEY);
 
-    private JobParameters extractEtagList(JobParameters parameters) {
-        String fullStr = getString(parameters, ETAG_KEY);
-        assert fullStr != null;
-        List<String> etagList = Arrays.asList(fullStr.split(","));
-
-        Map<DumpType, DiscogsDump> dumpMap = etagList.stream()
-                .map(dumpService::getDumpByEtag)
-                .collect(Collectors.toMap(DiscogsDump::getDumpType, dump -> dump));
-
-
-    }
-
-    private Map<DumpType, DiscogsDump> resolveDumpDependency(Map<DumpType, DiscogsDump> dumpMap) {
-        Map<DumpType, DiscogsDump> resultMap = new HashMap<>();
-        dumpMap.forEach(resultMap::put);
-
-        if (resultMap.containsKey(DumpType.RELEASE)) {
-            DiscogsDump releaseDump = resultMap.get(DumpType.RELEASE);
-            LocalDate targetDate = releaseDump.getLastModified().toZonedDateTime().toLocalDate();
-
-            log.info("found release dump type. fetching relevant dumps from: " + targetDate.getMonth() + ", " + targetDate.getYear());
-            List<DiscogsDump> list = dumpService.getDumpListInYearMonth(targetDate.getYear(), targetDate.getMonthValue());
-            list.stream()
-                    .filter(item -> item.getDumpType() != DumpType.RELEASE)
-                    .forEach(item -> {
-                        if (resultMap.containsKey(item.getDumpType())) {
-                            DiscogsDump preListedDump = resultMap.get(item.getDumpType());
-                            if (item.getLastModified().isAfter(preListedDump.getLastModified())) {
-                                log.debug("replacing dump {{}} to {{}}", preListedDump.getEtag(), item.getEtag());
-                                resultMap.put(item.getDumpType(), item);
-                            }
-                        }
-                    });
-            return resultMap;
+        if (haveYearMonth && haveTypes) {
+            List<String> types = extractStrings(parameters, TYPES_KEY);
+            List<DiscogsDump> resolvedList = resolver.resolveByTypeAndYearMonth(
+                    types, parameters.getString(yearMonthKey));
+            for (DiscogsDump dump : resolvedList) {
+                builder.addString(dump.getRootElementName(), dump.getEtag());
+            }
+            return builder.toJobParameters();
         }
 
-        if (resultMap.containsKey(DumpType.MASTER)) {
-            DiscogsDump masterDump = resultMap.get(DumpType.MASTER);
-            OffsetDateTime time = masterDump.getLastModified().withOffsetSameInstant(ZoneOffset.UTC);
-            List<DiscogsDump> list = dumpService.getDumpListInYearMonth(time.getYear(), time.getMonthValue());
+        if (haveTypes) {
+            List<String> types = extractStrings(parameters, typesKey);
+            resolver.resolveByType(types).forEach(dump ->
+                    builder.addString(dump.getRootElementName(), dump.getEtag()));
+            return builder.toJobParameters();
         }
+
+        if (haveYearMonth) {
+            resolver.resolveByYearMonth(parameters.getString(yearMonthKey))
+                    .forEach(dump -> builder.addString(dump.getRootElementName(), dump.getEtag()));
+            return builder.toJobParameters();
+        }
+
+        dumpService.getLatestCompletedDumpSet().forEach(
+                dump -> builder.addString(dump.getRootElementName(), dump.getEtag()));
+        return builder.toJobParameters();
     }
 
-    private boolean isEtagPresent(JobParameters parameters) {
-        String key = getKeyEqualsIgnoreCase(parameters, ETAG_KEY);
-        if (key == null) {
-            log.debug("etag entry not found.");
+    private boolean isValidEntryPresent(JobParameters parameters, String key) {
+        String entryKey = getKeyEqualsIgnoreCase(parameters, key);
+        if (entryKey == null) {
+            log.info("{} entry not found.", key);
             return false;
         }
-        String value = parameters.getString(key);
+        String value = parameters.getString(entryKey);
         if (value == null || value.isBlank()) {
-            log.debug("found etag entry with empty value.");
+            log.info("found {} entry with empty value.", key);
             return false;
         }
         return true;
     }
 
-    private boolean isValidYearMonthPresent(JobParameters jobParameters) {
-        String key = getKeyEqualsIgnoreCase(jobParameters, YEAR_MONTH_KEY);
-        String date = jobParameters.getString(key);
-        if (date == null || date.isBlank()) {
-            return false;
+    private JobParameters extractEtagList(JobParameters userParameters) {
+        String fullStr = getString(userParameters, ETAG_KEY);
+        assert fullStr != null;
+        List<String> etagList = Arrays.asList(fullStr.split(","));
+        List<DiscogsDump> resolvedDumps = resolver.resolveByEtag(etagList);
+        JobParametersBuilder builder = new JobParametersBuilder();
+        resolvedDumps.forEach(dump -> builder.addString(dump.getRootElementName(), dump.getEtag()));
+        return builder.toJobParameters();
+    }
+
+    private List<String> extractStrings(JobParameters parameters, String key) {
+        String target = getKeyEqualsIgnoreCase(parameters, key);
+        String value = parameters.getString(target);
+        if (value == null || value.isBlank()) {
+            return new ArrayList<>();
         }
-        return MalformedDateParser.yearMonthMatches(date);
+        return List.of(value.split(","));
     }
-
-
-    private Map<String, String> checkRecentDumps() {
-        log.debug("fetching recent dumps");
-        List<DiscogsDump> recentDumps = dumpService.getLatestCompletedDumpSet();
-
-        Map<String, String> etagMap = new HashMap<>();
-        recentDumps.forEach(dump -> {
-            etagMap.put(dump.getRootElementName(), dump.getEtag());
-        });
-
-        return etagMap;
-    }
-
-    /**
-     * @param jobParameters given JobParameters
-     * @return result of finding whether to run recent or not
-     */
-    private boolean isRecentOrder(JobParameters jobParameters) {
-        String key = getKeyEqualsIgnoreCase(jobParameters, "recent");
-        if (key != null) {
-            String val = jobParameters.getString(key);
-            if (val != null) {
-                return !val.equalsIgnoreCase("false");
-            }
-        }
-        return false;
-    }
-
 
     private long extractChunkSize(JobParameters origin) {
         if (getKeyEqualsIgnoreCase(origin, CHUNK_SIZE_KEY) == null) {
@@ -147,12 +108,12 @@ public class SimpleDiscogsJobParameterFormatter implements DiscogsJobParameterFo
         Long chunkSize = getLong(origin, CHUNK_SIZE_KEY);
 
         if (chunkSize == null) {
-            log.debug("found chunkSize entry but is empty: {{}}. setting to default {{}}.",
+            log.info("found chunkSize entry but is empty: {{}}. setting to default {{}}.",
                     getKeyEqualsIgnoreCase(origin, CHUNK_SIZE_KEY),
                     DEFAULT_CHUNK_SIZE);
             return DEFAULT_CHUNK_SIZE;
         }
-        log.debug("setting chunkSize to {{}}.", chunkSize);
+        log.info("setting chunkSize to {{}}.", chunkSize);
         return chunkSize;
     }
 

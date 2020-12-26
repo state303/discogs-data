@@ -4,8 +4,6 @@ import io.dsub.discogsdata.batch.exception.DumpNotFoundException;
 import io.dsub.discogsdata.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.springframework.batch.core.JobInterruptedException;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
@@ -31,6 +29,8 @@ import javax.batch.operations.JobExecutionIsRunningException;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -54,8 +54,7 @@ public class RequestExceptionHandler extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> makeResponse(String exceptionReason, HttpStatus httpStatus) {
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("message", exceptionReason);
-        responseBody.put("time", new DateTime(DateTimeZone.UTC).toString());
-
+        responseBody.put("time", OffsetDateTime.now(ZoneId.of("UTC")).toString());
         return ResponseEntity.status(httpStatus)
                 .contentType(MediaType.APPLICATION_JSON)
                 .location(getRequestURI())
@@ -65,7 +64,7 @@ public class RequestExceptionHandler extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> makeResponse(String exceptionReason, HttpStatus httpStatus, HttpServletRequest request) {
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("message", exceptionReason);
-        responseBody.put("time", new DateTime(DateTimeZone.UTC).toString());
+        responseBody.put("time", OffsetDateTime.now(ZoneId.of("UTC")).toString());
 
         return ResponseEntity.status(httpStatus)
                 .contentType(MediaType.APPLICATION_JSON)

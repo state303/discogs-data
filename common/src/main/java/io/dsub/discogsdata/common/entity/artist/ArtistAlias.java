@@ -13,29 +13,16 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ArtistAlias extends BaseTimeEntity {
-    @Data
-    @Embeddable
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ArtistAliasId implements Serializable {
-        @Column(name = "artist_id")
-        private Long artistId;
-        @Column(name = "alias_id")
-        private Long alias_id;
-    }
 
-    @EmbeddedId
-    private ArtistAliasId artistAliasId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    /*
-     * Convenient READ_ONLY access for actually mapped class.
-     * NOTE: mark any FetchType to avoid warning about immutability.
-     */
-    @JoinColumn(name = "artist_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = Artist.class, fetch = FetchType.EAGER)
+    @ManyToOne
+    @JoinColumn(name = "artist_id")
     private Artist artist;
 
-    @JoinColumn(name = "alias_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = Artist.class, fetch = FetchType.EAGER)
+    @ManyToOne
+    @JoinColumn(name = "alias_id")
     private Artist alias;
 }

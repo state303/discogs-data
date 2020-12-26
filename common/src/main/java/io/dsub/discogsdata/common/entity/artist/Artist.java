@@ -20,11 +20,12 @@ public class Artist extends BaseTimeEntity {
     @Id
     private Long id;
     private String name;
+    @Column(length = 2000)
     private String realName;
 
     @Builder.Default
     @ElementCollection
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 2000)
     private List<String> nameVariation = new ArrayList<>();
 
     @Builder.Default

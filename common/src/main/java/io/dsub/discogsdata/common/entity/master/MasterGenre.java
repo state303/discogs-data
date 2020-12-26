@@ -16,25 +16,15 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class MasterGenre extends BaseTimeEntity {
 
-    @Data
-    @Embeddable
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MasterGenreId implements Serializable {
-        @Column(name = "master_id")
-        private Long masterId;
-        @Column(name = "genre_id")
-        private Long genreId;
-    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @EmbeddedId
-    private MasterGenreId masterGenreId;
-
-    @JoinColumn(name = "master_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = Master.class, fetch = FetchType.EAGER)
+    @JoinColumn(name = "master_id")
+    @ManyToOne
     private Master master;
 
-    @JoinColumn(name = "genre_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = Genre.class, fetch = FetchType.EAGER)
+    @JoinColumn(name = "genre_id")
+    @ManyToOne
     private Genre genre;
 }

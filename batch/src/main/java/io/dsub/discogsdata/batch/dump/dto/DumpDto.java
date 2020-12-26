@@ -6,7 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -17,5 +19,5 @@ public class DumpDto {
     private String etag;
     private Long size;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime lastModified;
+    private OffsetDateTime lastModified;
 }

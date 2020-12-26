@@ -23,5 +23,6 @@ public class Format {
     @Column(columnDefinition = "TEXT")
     private String text;
     @ElementCollection
+    @Builder.Default
     private Set<String> description = new HashSet<>();
 }

@@ -1,11 +1,6 @@
 package io.dsub.discogsdata.batch.reader;
 
-import io.dsub.discogsdata.batch.process.RelationsHolder;
-import io.dsub.discogsdata.batch.xml.object.XmlArtist;
-import io.dsub.discogsdata.common.entity.artist.ArtistAlias;
-import io.dsub.discogsdata.common.entity.artist.ArtistGroup;
-import io.dsub.discogsdata.common.entity.artist.ArtistMember;
-import lombok.Getter;
+import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ExecutionContext;
@@ -14,30 +9,51 @@ import org.springframework.batch.item.ItemStream;
 import org.springframework.batch.item.ItemStreamException;
 import org.springframework.batch.item.file.ResourceAwareItemReaderItemStream;
 import org.springframework.batch.item.xml.StaxEventItemReader;
+import org.springframework.batch.item.xml.builder.StaxEventItemReaderBuilder;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.oxm.Unmarshaller;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.GZIPInputStream;
 
-@Getter
 @Slf4j
 @RequiredArgsConstructor
 public class CustomStaxEventItemReader<T> implements ItemReader<T>, ItemStream, InitializingBean, ResourceAwareItemReaderItemStream<T> {
 
-    private static volatile AtomicInteger count = new AtomicInteger(0);
+//    private static volatile AtomicInteger count = new AtomicInteger(0);
     private final StaxEventItemReader<T> nestedReader;
-    private final RelationsHolder relationsHolder;
+
+    public CustomStaxEventItemReader(Class<T> clazz, DiscogsDump dump) throws Exception {
+        Jaxb2Marshaller jaxb2Marshaller = new Jaxb2Marshaller();
+        jaxb2Marshaller.setClassesToBeBound(clazz);
+        jaxb2Marshaller.afterPropertiesSet();
+
+        Path target = Path.of(dump.getUri().split("/")[2]);
+
+        this.nestedReader = new StaxEventItemReaderBuilder<T>()
+                .resource(new InputStreamResource(new GZIPInputStream(Files.newInputStream(target))))
+                .name(dump.getRootElementName() + " reader " + dump.getEtag())
+                .addFragmentRootElements(dump.getRootElementName())
+                .unmarshaller(jaxb2Marshaller)
+                .build();
+        this.afterPropertiesSet();
+    }
 
     @Override
     public synchronized T read() throws Exception {
-        count.addAndGet(1);
-
-        if (500 < count.get()) {
-            log.debug("5000 exceeded. returning null object");
-//            count = new AtomicInteger(0);
-            return null;
-        }
+//        count.addAndGet(1);
+//
+//        if (500 < count.get()) {
+//            log.debug("Exceeded 500 count. Returning null object");
+////            count = new AtomicInteger(0);
+//            return null;
+//        }
 
         return nestedReader.read();
     }

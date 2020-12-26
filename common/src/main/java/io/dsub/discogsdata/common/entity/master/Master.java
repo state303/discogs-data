@@ -1,10 +1,13 @@
 package io.dsub.discogsdata.common.entity.master;
 
+import io.dsub.discogsdata.common.entity.Video;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import io.dsub.discogsdata.common.entity.release.ReleaseItem;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -28,6 +31,10 @@ public class Master extends BaseTimeEntity {
      */
     @Column(name = "release_item_id")
     private Long releaseItemId;
+
+    @OneToMany
+    @Builder.Default
+    private List<Video> videos = new ArrayList<>();
 
     /*
      * Convenient READ_ONLY access for actually mapped class.

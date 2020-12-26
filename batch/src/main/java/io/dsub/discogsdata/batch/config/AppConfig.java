@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration
@@ -14,16 +16,28 @@ public class AppConfig {
     @Primary
     public ThreadPoolTaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5);
-        executor.setMaxPoolSize(64);
-        executor.setQueueCapacity(500);
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(3000);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setWaitForTasksToCompleteOnShutdown(Boolean.TRUE);
         executor.setThreadNamePrefix("MultiThreaded-");
+        executor.initialize();
         return executor;
     }
 
     @Bean
     public RelationsHolder relationsHolder() {
         return new RelationsHolder();
+    }
+
+    @Bean
+    public Map<String, Long> stylesCache() {
+        return new ConcurrentHashMap<>();
+    }
+
+    @Bean
+    public Map<String, Long> genresCache() {
+        return new ConcurrentHashMap<>();
     }
 }

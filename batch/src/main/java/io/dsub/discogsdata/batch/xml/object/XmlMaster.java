@@ -41,11 +41,22 @@ public class XmlMaster extends XmlObject {
 
     @XmlElementWrapper(name = "videos")
     @XmlElement(name = "video")
-    private Set<VideoUrl> videos;
+    private Set<Video> videos;
 
     @Override
     public Master toEntity() {
-        return null;
+        String[] fields = new String[]{title, dataQuality};
+        for (int i = 0; i < fields.length; i++) {
+            if (fields[i] != null && fields[i].isBlank()) {
+                fields[i] = null;
+            }
+        }
+        return Master.builder()
+                .id(id)
+                .title(fields[0])
+                .dataQuality(fields[1])
+                .year(year)
+                .build();
     }
 
     @Data
@@ -57,7 +68,11 @@ public class XmlMaster extends XmlObject {
 
     @Data
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class VideoUrl {
+    public static class Video {
+        @XmlElement(name = "title")
+        private String title;
+        @XmlElement(name = "description")
+        private String description;
         @XmlAttribute(name = "src")
         private String url;
     }

@@ -12,7 +12,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @Slf4j
@@ -30,7 +32,7 @@ public class DiscogsDump implements Comparable<DiscogsDump> {
     private String uri;
     private String etag;
     private Long size;
-    private LocalDateTime lastModified;
+    private OffsetDateTime lastModified;
 
     public String getResourceUrl() {
         return SimpleDumpFetcher.LAST_KNOWN_BUCKET_URL + "/" + this.uri;

@@ -14,29 +14,19 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LabelSubLabel extends BaseTimeEntity{
-    @Data
-    @Embeddable
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class LabelSubLabelId implements Serializable {
-        @Column(name = "parent_label_id")
-        private Long parentLabelId;
-        @Column(name = "sub_label_id")
-        private Long subLabelId;
-    }
 
-    @EmbeddedId
-    private LabelSubLabelId labelSubLabelId;
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     /*
      * Convenient READ_ONLY access for actually mapped class.
      * NOTE: mark any FetchType to avoid warning about immutability.
      */
-    @JoinColumn(name = "parent_label_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = Label.class, fetch = FetchType.EAGER)
+    @ManyToOne
+    @JoinColumn(name = "parent_label_id")
     private Label parent;
 
-    @JoinColumn(name = "sub_label_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = Label.class, fetch = FetchType.EAGER)
+    @ManyToOne
+    @JoinColumn(name = "sub_label_id")
     private Label subLabel;
 }

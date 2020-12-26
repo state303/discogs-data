@@ -1,10 +1,6 @@
 package io.dsub.discogsdata.batch.xml.object;
 
 import io.dsub.discogsdata.common.entity.artist.Artist;
-import io.dsub.discogsdata.common.entity.artist.ArtistAlias;
-import io.dsub.discogsdata.common.entity.artist.ArtistGroup;
-import io.dsub.discogsdata.common.entity.artist.ArtistMember;
-import io.dsub.discogsdata.common.entity.base.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -59,12 +55,20 @@ public class XmlArtist extends XmlObject {
     }
 
     public Artist toEntity() {
+        String[] fields = new String[]{name, realName, dataQuality, profile};
+
+        for (int i = 0; i < fields.length; i++) {
+            if (fields[i] != null && fields[i].isBlank()) {
+                fields[i] = null;
+            }
+        }
+
         return Artist.builder()
                 .id(id)
-                .name(name)
-                .realName(realName)
-                .dataQuality(dataQuality)
-                .profile(profile)
+                .name(fields[0])
+                .realName(fields[1])
+                .dataQuality(fields[2])
+                .profile(fields[3])
                 .nameVariation(nameVariations)
                 .urls(urls)
                 .build();

@@ -1,42 +1,30 @@
-package io.dsub.discogsdata.batch.step;
+package io.dsub.discogsdata.batch.step.artist;
 
 import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
-import io.dsub.discogsdata.batch.process.RelationsHolder;
-import io.dsub.discogsdata.batch.process.RepositoriesHolderBean;
-import io.dsub.discogsdata.batch.process.SimpleRelation;
+import io.dsub.discogsdata.batch.dump.enums.DumpType;
 import io.dsub.discogsdata.batch.process.XmlObjectReadListener;
 import io.dsub.discogsdata.batch.reader.CustomStaxEventItemReader;
 import io.dsub.discogsdata.batch.xml.object.XmlArtist;
 import io.dsub.discogsdata.common.entity.artist.Artist;
-import io.dsub.discogsdata.common.entity.artist.ArtistGroup;
+import io.dsub.discogsdata.common.repository.artist.ArtistRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.core.job.builder.FlowBuilder;
-import org.springframework.batch.core.job.flow.Flow;
 import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.integration.async.AsyncItemWriter;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
-import org.springframework.batch.item.xml.StaxEventItemReader;
-import org.springframework.batch.item.xml.builder.StaxEventItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.net.URL;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
-import java.util.zip.GZIPInputStream;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class ArtistStepConfigurer {
@@ -44,30 +32,26 @@ public class ArtistStepConfigurer {
     private final StepBuilderFactory stepBuilderFactory;
     private final DumpService dumpService;
     private final ThreadPoolTaskExecutor taskExecutor;
-    private final RelationsHolder relationsHolder;
-    private final RepositoriesHolderBean repositoriesHolderBean;
     private final XmlObjectReadListener xmlObjectReadListener;
+    private final ArtistRepository artistRepository;
+
+    private String etag;
 
     @Bean
     @JobScope
-    public Step asyncArtistStep(@Value("#{jobParameters['artist']}") String etag) throws Exception {
+    public Step artistStep(@Value("#{jobParameters['artist']}") String etag, @Value("#{jobParameters['chunkSize']}") int chunkSize) throws Exception {
+
+        this.etag = etag != null ? etag : dumpService.getMostRecentDumpByType(DumpType.ARTIST).getEtag();
+
         return stepBuilderFactory
                 .get("artistStep " + etag)
-                .<XmlArtist, Future<Artist>>chunk(5000)
-                .reader(artistReader(null))
+                .<XmlArtist, Future<Artist>>chunk(chunkSize)
+                .reader(artistReader())
                 .processor(asyncArtistProcessor())
                 .writer(asyncArtistWriter())
                 .listener(xmlObjectReadListener)
                 .taskExecutor(taskExecutor)
-                .build();
-    }
-
-    @Bean
-    @JobScope
-    public Flow artistFlow(@Value("#{jobParameters['artist']}") String etag) throws Exception {
-        return new FlowBuilder<Flow>("artistFlow " + etag)
-                .start(asyncArtistStep(null))
-                .next(asyncArtistGroupStep(null))
+                .throttleLimit(10)
                 .build();
     }
 
@@ -75,101 +59,28 @@ public class ArtistStepConfigurer {
     public AsyncItemProcessor<XmlArtist, Artist> asyncArtistProcessor() {
         AsyncItemProcessor<XmlArtist, Artist> asyncItemProcessor = new AsyncItemProcessor<>();
         asyncItemProcessor.setTaskExecutor(taskExecutor);
-        asyncItemProcessor.setDelegate(artistProcessor());
+        asyncItemProcessor.setDelegate(XmlArtist::toEntity);
         return asyncItemProcessor;
     }
 
     @Bean
     public AsyncItemWriter<Artist> asyncArtistWriter() throws Exception {
-        AsyncItemWriter<Artist> asyncItemWriter = new AsyncItemWriter<>();
-        asyncItemWriter.setDelegate(artistWriter());
-        return asyncItemWriter;
-    }
-
-    @Bean
-    public ItemProcessor<XmlArtist, Artist> artistProcessor() {
-        return XmlArtist::toEntity;
+        RepositoryItemWriter<Artist> syncWriter = new RepositoryItemWriter<>();
+        syncWriter.setRepository(artistRepository);
+        syncWriter.afterPropertiesSet();
+        AsyncItemWriter<Artist> asyncWriter = new AsyncItemWriter<>();
+        asyncWriter.setDelegate(syncWriter);
+        return asyncWriter;
     }
 
     @Bean
     @StepScope
-    public CustomStaxEventItemReader<XmlArtist> artistReader(@Value("#{jobParameters['artist']}") String etag) throws Exception {
+    public CustomStaxEventItemReader<XmlArtist> artistReader() throws Exception {
         DiscogsDump artistDump = dumpService.getDumpByEtag(etag);
-        Jaxb2Marshaller jaxb2Marshaller = new Jaxb2Marshaller();
-        jaxb2Marshaller.setClassesToBeBound(XmlArtist.class);
-        jaxb2Marshaller.afterPropertiesSet();
-        StaxEventItemReader<XmlArtist> reader = new StaxEventItemReaderBuilder<XmlArtist>()
-                .resource(new InputStreamResource(new GZIPInputStream(new URL(artistDump.getResourceUrl()).openStream())))
-                .name(artistDump.getRootElementName() + " reader: " + artistDump.getEtag())
-                .addFragmentRootElements("artist")
-                .unmarshaller(jaxb2Marshaller)
-                .build();
-        return new CustomStaxEventItemReader<>(reader);
+        return new CustomStaxEventItemReader<>(XmlArtist.class, artistDump);
     }
 
-    @Bean
-    public RepositoryItemWriter<Artist> artistWriter() throws Exception {
-        RepositoryItemWriter<Artist> writer = new RepositoryItemWriter<>();
-        writer.setRepository(repositoriesHolderBean.getArtistRepository());
-        writer.afterPropertiesSet();
-        return writer;
-    }
-
-    @Bean
-    @JobScope
-    public Step asyncArtistGroupStep(@Value("#{jobParameters['artist']}") String etag) throws Exception {
-        return stepBuilderFactory
-                .get("artistGroupStep " + etag)
-                .<SimpleRelation, Future<ArtistGroup>>chunk(5000)
-                .reader(artistGroupItemReader())
-                .processor(artistGroupProcessor())
-                .writer(artistGroupWriter())
-                .taskExecutor(taskExecutor)
-                .build();
-    }
-
-    @Bean
-    @StepScope
-    public ItemReader<SimpleRelation> artistGroupItemReader() {
-        ConcurrentLinkedQueue<SimpleRelation> queue = relationsHolder.pullSimpleRelationsQueue(XmlArtist.Group.class);
-        return queue::poll;
-    }
-
-    @Bean
-    public AsyncItemWriter<ArtistGroup> artistGroupWriter() throws Exception {
-        AsyncItemWriter<ArtistGroup> writer = new AsyncItemWriter<>();
-        writer.setDelegate(artistGroupRepositoryItemWriter());
-        writer.afterPropertiesSet();
-        return writer;
-    }
-
-    @Bean
-    public RepositoryItemWriter<ArtistGroup> artistGroupRepositoryItemWriter() throws Exception {
-        RepositoryItemWriter<ArtistGroup> writer = new RepositoryItemWriter<>();
-        writer.setRepository(repositoriesHolderBean.getArtistGroupRepository());
-        writer.afterPropertiesSet();
-        return writer;
-    }
-
-
-    @Bean
-    public AsyncItemProcessor<SimpleRelation, ArtistGroup> artistGroupProcessor() throws Exception {
-        AsyncItemProcessor<SimpleRelation, ArtistGroup> asyncItemProcessor = new AsyncItemProcessor<>();
-        asyncItemProcessor.setTaskExecutor(taskExecutor);
-        asyncItemProcessor.setDelegate(simpleRelation -> {
-            if (isValid(simpleRelation, repositoriesHolderBean.getArtistRepository())) {
-                return simpleRelation.toArtistGroup();
-            }
-            return null;
-        });
-        asyncItemProcessor.afterPropertiesSet();
-        return asyncItemProcessor;
-    }
-
-    private boolean isValid(SimpleRelation simpleRelation, CrudRepository<?, Long> repository) {
-        return simpleRelation.getParentId() != null &&
-                simpleRelation.getChildId() != null &&
-                repository.existsById(simpleRelation.getParentId()) &&
-                repository.existsById(simpleRelation.getChildId());
+    private String getDefaultEtag() {
+        return dumpService.getMostRecentDumpByType(DumpType.ARTIST).getEtag();
     }
 }

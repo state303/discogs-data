@@ -31,10 +31,15 @@ subprojects {
     dependencies {
         implementation(
                 'org.springframework.boot:spring-boot-starter-data-jpa',
-                'org.springframework.boot:spring-boot-starter-web'
+                'org.springframework.boot:spring-boot-starter-web',
+                'org.projectlombok:lombok',
         )
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
-        implementation 'org.projectlombok:lombok'
+        testImplementation (
+                'org.springframework.boot:spring-boot-starter-test',
+                'org.junit.jupiter:junit-jupiter:5.4.2',
+                'org.projectlombok:lombok'
+        )
+        testAnnotationProcessor 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
     }
 

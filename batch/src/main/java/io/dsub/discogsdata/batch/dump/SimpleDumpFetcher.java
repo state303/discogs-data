@@ -19,9 +19,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -34,12 +32,11 @@ import java.util.stream.Collectors;
 public class SimpleDumpFetcher implements DumpFetcher {
 
     private static final String DISCOGS_DATA_BASE_URL = "https://data.discogs.com/";
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneId.of("UTC"));
     public static String LAST_KNOWN_BUCKET_URL = "https://discogs-data.s3-us-west-2.amazonaws.com";
 
-    private static boolean isWithinValidRange(LocalDateTime localDateTime) {
+    private static boolean isWithinValidRange(OffsetDateTime offsetDateTime) {
         LocalDate that = LocalDate.of(2018, 1, 1);
-        LocalDate localDate = localDateTime.toLocalDate();
+        LocalDate localDate = offsetDateTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDate();
         return (localDate.isEqual(that) || localDate.isAfter(that));
     }
 
@@ -51,43 +48,13 @@ public class SimpleDumpFetcher implements DumpFetcher {
         throw new UnknownDumpTypeException("failed to parse dump type from " + dumpKey);
     }
 
-    private static void updateLastKnownBucketUrl(String urlString) {
-        URL url;
-
-        try {
-            url = new URL(urlString);
-        } catch (MalformedURLException e) {
-            log.warn("Malformed url detected. Leaving known bucket url as is.");
-            return;
-        }
-
-        try (InputStream in = url.openStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-
-            String target = reader.lines()
-                    .filter(s -> s.contains("BUCKET_URL"))
-                    .collect(Collectors.joining());
-
-            target = Arrays.stream(target.split("'"))
-                    .filter(s -> s.contains("discogs"))
-                    .collect(Collectors.joining());
-
-            LAST_KNOWN_BUCKET_URL = "https:" + target;
-        } catch (IOException e) {
-            log.warn("Exception: " + e.getMessage() + ". Leaving known bucket url as is.");
-        }
-    }
-
     public List<DiscogsDump> getDiscogsDumps() {
-        return getDiscogsDumps(LAST_KNOWN_BUCKET_URL);
-    }
 
-    public List<DiscogsDump> getDiscogsDumps(String discogsS3BucketUrl) {
         List<DiscogsDump> dumpList = new ArrayList<>();
         URL url;
 
         try {
-            url = new URL(discogsS3BucketUrl);
+            url = new URL(LAST_KNOWN_BUCKET_URL);
         } catch (MalformedURLException e) {
             log.error("Malformed url detected. Returning empty container...");
             return new ArrayList<>();
@@ -125,7 +92,7 @@ public class SimpleDumpFetcher implements DumpFetcher {
     public DiscogsDump parseDump(NodeList dataNodeList) {
         DumpType dumpType = null;
         String uri = "";
-        LocalDateTime lastModified = null;
+        OffsetDateTime lastModified = null;
         String etag = "";
         long size = 0L;
 
@@ -139,7 +106,8 @@ public class SimpleDumpFetcher implements DumpFetcher {
                         dumpType = getDumpType(uri);
                         break;
                     case "LastModified":
-                        lastModified = LocalDateTime.parse(data.getTextContent(), FORMATTER);
+                        lastModified = OffsetDateTime
+                                .parse(data.getTextContent());
                         break;
                     case "ETag":
                         etag = data.getTextContent().replace("\"", "");
@@ -166,10 +134,5 @@ public class SimpleDumpFetcher implements DumpFetcher {
                 .size(size)
                 .lastModified(lastModified)
                 .build();
-    }
-
-    public String getS3BucketUrl() {
-        updateLastKnownBucketUrl(DISCOGS_DATA_BASE_URL);
-        return LAST_KNOWN_BUCKET_URL;
     }
 }

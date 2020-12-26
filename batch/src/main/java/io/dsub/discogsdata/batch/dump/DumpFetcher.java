@@ -7,10 +7,5 @@ import java.util.List;
 
 public interface DumpFetcher {
     List<DiscogsDump> getDiscogsDumps();
-
-    List<DiscogsDump> getDiscogsDumps(String discogsS3BucketUrl);
-
     DiscogsDump parseDump(NodeList dataNodeList);
-
-    String getS3BucketUrl();
 }

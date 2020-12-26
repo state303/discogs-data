@@ -39,7 +39,6 @@ public class ServiceExceptionLogger extends ServiceAspect {
                     Modifier.toString(joinPoint.getSignature().getModifiers()),
                     joinPoint.getSignature().getName(),
                     args);
-
             throw e;
         }
     }

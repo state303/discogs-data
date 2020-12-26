@@ -6,17 +6,10 @@ import io.dsub.discogsdata.batch.exception.DumpNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,102 +18,108 @@ import java.util.stream.Collectors;
 public class DumpServiceImpl implements DumpService {
 
     private final DumpRepository dumpRepository;
-    private final SimpleDumpFetcher discogsDumpFetcher;
-
-    private ConcurrentMap<DumpType, ConcurrentSkipListSet<DiscogsDump>> cache;
-    private LocalDateTime lastUpdated = null;
+    private final DumpFetcher dumpFetcher;
+    private boolean updateChecked = false;
 
     @Override
     public DiscogsDump getDumpByEtag(String etag) throws DumpNotFoundException {
         updateDumps();
         etag = etag.replace("\"", "");
-        Optional<DiscogsDump> optionalDiscogsDump =
-                dumpRepository.findOne(Example.of(DiscogsDump.builder().etag(etag).build()));
-        String finalEtag = etag;
-        return optionalDiscogsDump.orElseThrow(() -> new DumpNotFoundException(finalEtag));
+        if (!dumpRepository.existsByEtag(etag)) {
+            throw new DumpNotFoundException(etag);
+        }
+        return dumpRepository.findByEtag(etag);
     }
 
     @Override
     public DiscogsDump getMostRecentDumpByType(DumpType type) {
         updateDumps();
-        return cache.get(type).last();
+        return dumpRepository.findTopByDumpTypeOrderByIdDesc(type);
     }
 
     @Override
     public List<DiscogsDump> getLatestCompletedDumpSet() {
         updateDumps();
 
-        LocalDateTime begin = LocalDateTime.of(LocalDate.now().getYear(), LocalDate.now().getMonth(), 1, 0, 0);
+        OffsetDateTime current = OffsetDateTime.now()
+                .withDayOfMonth(1)
+                .withHour(0)
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0);
+
+        OffsetDateTime start = OffsetDateTime.of(current.toLocalDate(), current.toLocalTime(), ZoneOffset.UTC);
 
         List<DiscogsDump> dumps = new ArrayList<>();
 
         while (dumps.size() < 4) {
-            dumps = dumpRepository.findAllByLastModifiedIsBetween(begin, begin.plusMonths(1).minusDays(1));
-            begin = begin.minusMonths(1);
+            dumps = dumpRepository.findAllByLastModifiedIsBetween(start, start.plusMonths(1));
+            start = start.minusMonths(1);
         }
 
         return dumps;
     }
 
     @Override
-    public List<DiscogsDump> getDumpListInRange(LocalDate start, LocalDate end) {
-        LocalDateTime from = LocalDateTime.of(start.getYear(), start.getMonth(), 1, 0, 0);
-        LocalDateTime to = LocalDateTime.of(end, LocalTime.of(0, 0));
+    public List<DiscogsDump> getDumpListInRange(OffsetDateTime start, OffsetDateTime end) {
         return dumpRepository
-                .findAllByLastModifiedIsBetween(from, to);
+                .findAllByLastModifiedIsBetween(start, end);
     }
 
     @Override
-    public List<DiscogsDump> getDumpListInRange(DiscogsDump dump) {
-        LocalDate start = dump.getLastModified().toLocalDate();
-        LocalDate to = start.plusMonths(1).minusDays(1);
-        return getDumpListInRange(start, to);
+    public DiscogsDump getDumpByDumpTypeInRange(DumpType dumpType, OffsetDateTime from, OffsetDateTime to) {
+        return dumpRepository.findByDumpTypeAndLastModifiedIsBetween(dumpType, from, to);
+    }
+
+    @Override
+    public List<DiscogsDump> getDumpListInYearMonth(int year, int month) {
+        OffsetDateTime start = getYearMonthInitialDateTime(year, month);
+        return dumpRepository.findAllByLastModifiedIsBetween(start, start.plusMonths(1));
     }
 
     @Override
     public void updateDumps() {
-        if (isUpdatedToday()) {
+        if (updateChecked) return;
+
+        updateChecked = true;
+
+        OffsetDateTime current = OffsetDateTime.now(ZoneId.of("UTC"));
+        int month = current.getMonthValue();
+        int year = current.getYear();
+
+        OffsetDateTime start = OffsetDateTime.of(LocalDate.of(year, month, 1), LocalTime.MIN, ZoneOffset.UTC);
+        OffsetDateTime end = start.plusMonths(1);
+
+        int count = dumpRepository.countByLastModifiedBetween(start, end);
+
+        if (count == 4) {
+            log.debug("full monthly dump found for {}-{}", year, month);
             return;
         }
-        this.cache = createNewCache();
-        lastUpdated = LocalDateTime.now();
-    }
 
-    public List<DiscogsDump> updateRepository() {
-        String s3BucketUrl = discogsDumpFetcher.getS3BucketUrl();
-        List<DiscogsDump> fullDump = discogsDumpFetcher.getDiscogsDumps(s3BucketUrl);
-        List<DiscogsDump> targetDumpList = new ArrayList<>();
-
+        List<DiscogsDump> target = dumpFetcher.getDiscogsDumps();
         long repoSize = dumpRepository.count();
 
-        if (repoSize < fullDump.size() - 4) {
-            log.debug(String.format("begin full update >> current %s target %s", repoSize, fullDump.size()));
-            targetDumpList = fullDump;
-        } else if (repoSize == fullDump.size()) {
+        if (repoSize == target.size()) {
             log.debug("repository up-to-date. skip update");
-        } else {
-            log.debug(String.format("begin partial update >> current %s target %s", repoSize, fullDump.size()));
-            Collection<DiscogsDump> recentDumps = fullDump.stream()
-                    .collect(Collectors.toMap(
-                            (DiscogsDump::getDumpType),
-                            (dump -> dump),
-                            ((prev, curr) ->
-                                    prev.getLastModified()
-                                            .isAfter(curr.getLastModified()) ? prev : curr)))
-                    .values();
-            targetDumpList.addAll(recentDumps);
+            return;
         }
 
-        dumpRepository.saveAll(targetDumpList);
-        return fullDump;
+        if (repoSize < target.size()) {
+            log.debug("begin update >> current {} target {}", repoSize, target.size());
+        }
+
+        target = target.stream()
+                .filter(item -> !dumpRepository.existsByEtag(item.getEtag()))
+                .collect(Collectors.toList());
+
+        dumpRepository.saveAll(target);
     }
 
     @Override
     public List<DiscogsDump> getAllDumps() {
         updateDumps();
-        List<DiscogsDump> sum = new ArrayList<>();
-        this.cache.forEach((dumpType, discogsDumps) -> sum.addAll(discogsDumps));
-        return sum;
+        return dumpRepository.findAll();
     }
 
     @Override
@@ -129,28 +128,25 @@ public class DumpServiceImpl implements DumpService {
         return dumpRepository.existsByEtag(etag);
     }
 
-    @Override
-    public Page<?> getAllDumpsByPage(Pageable pageable) {
-        updateDumps();
-        return dumpRepository.findAll(pageable).map(DiscogsDump::toDto);
+    private OffsetDateTime getCurrentYearMonthDateTime() {
+        return OffsetDateTime.now()
+                .withDayOfMonth(1)
+                .withHour(0)
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0)
+                .withOffsetSameInstant(ZoneOffset.UTC);
     }
 
-    @Override
-    public boolean isUpdatedToday() {
-        if (lastUpdated == null) return false;
-        return lastUpdated.toLocalDate()
-                .isEqual(LocalDate.now());
-    }
-
-    private ConcurrentMap<DumpType, ConcurrentSkipListSet<DiscogsDump>> createNewCache() {
-        List<DiscogsDump> fullDump = updateRepository();
-
-        Function<DumpType, ConcurrentSkipListSet<DiscogsDump>> dumpSetByType =
-                dumpType -> fullDump.stream()
-                        .filter(item -> item.getDumpType().equals(dumpType))
-                        .collect(Collectors.toCollection(ConcurrentSkipListSet::new));
-
-        return Arrays.stream(DumpType.values())
-                .collect(Collectors.toConcurrentMap((item -> item), (dumpSetByType)));
+    private OffsetDateTime getYearMonthInitialDateTime(int year, int month) {
+        return OffsetDateTime.now()
+                .withYear(year)
+                .withMonth(month)
+                .withDayOfMonth(1)
+                .withHour(0)
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0)
+                .withOffsetSameInstant(ZoneOffset.UTC);
     }
 }

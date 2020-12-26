@@ -1,6 +1,5 @@
-package io.dsub.discogsdata.batch.util;
+package io.dsub.discogsdata.batch.dump;
 
-import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
 import io.dsub.discogsdata.batch.dump.enums.DumpType;
 import lombok.RequiredArgsConstructor;
