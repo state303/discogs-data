@@ -41,14 +41,14 @@ public class DumpServiceImpl implements DumpService {
     public List<DiscogsDump> getLatestCompletedDumpSet() {
         updateDumps();
 
-        OffsetDateTime current = OffsetDateTime.now()
+        LocalDateTime current = LocalDateTime.now()
                 .withDayOfMonth(1)
                 .withHour(0)
                 .withMinute(0)
                 .withSecond(0)
                 .withNano(0);
 
-        OffsetDateTime start = OffsetDateTime.of(current.toLocalDate(), current.toLocalTime(), ZoneOffset.UTC);
+        LocalDateTime start = LocalDateTime.of(current.toLocalDate(), current.toLocalTime());
 
         List<DiscogsDump> dumps = new ArrayList<>();
 
@@ -61,19 +61,19 @@ public class DumpServiceImpl implements DumpService {
     }
 
     @Override
-    public List<DiscogsDump> getDumpListInRange(OffsetDateTime start, OffsetDateTime end) {
+    public List<DiscogsDump> getDumpListInRange(LocalDateTime start, LocalDateTime end) {
         return dumpRepository
                 .findAllByLastModifiedIsBetween(start, end);
     }
 
     @Override
-    public DiscogsDump getDumpByDumpTypeInRange(DumpType dumpType, OffsetDateTime from, OffsetDateTime to) {
+    public DiscogsDump getDumpByDumpTypeInRange(DumpType dumpType, LocalDateTime from, LocalDateTime to) {
         return dumpRepository.findByDumpTypeAndLastModifiedIsBetween(dumpType, from, to);
     }
 
     @Override
     public List<DiscogsDump> getDumpListInYearMonth(int year, int month) {
-        OffsetDateTime start = getYearMonthInitialDateTime(year, month);
+        LocalDateTime start = getYearMonthInitialDateTime(year, month);
         return dumpRepository.findAllByLastModifiedIsBetween(start, start.plusMonths(1));
     }
 
@@ -87,8 +87,8 @@ public class DumpServiceImpl implements DumpService {
         int month = current.getMonthValue();
         int year = current.getYear();
 
-        OffsetDateTime start = OffsetDateTime.of(LocalDate.of(year, month, 1), LocalTime.MIN, ZoneOffset.UTC);
-        OffsetDateTime end = start.plusMonths(1);
+        LocalDateTime start = LocalDateTime.of(LocalDate.of(year, month, 1), LocalTime.MIN);
+        LocalDateTime end = start.plusMonths(1);
 
         int count = dumpRepository.countByLastModifiedBetween(start, end);
 
@@ -138,15 +138,14 @@ public class DumpServiceImpl implements DumpService {
                 .withOffsetSameInstant(ZoneOffset.UTC);
     }
 
-    private OffsetDateTime getYearMonthInitialDateTime(int year, int month) {
-        return OffsetDateTime.now()
+    private LocalDateTime getYearMonthInitialDateTime(int year, int month) {
+        return LocalDateTime.now()
                 .withYear(year)
                 .withMonth(month)
                 .withDayOfMonth(1)
                 .withHour(0)
                 .withMinute(0)
                 .withSecond(0)
-                .withNano(0)
-                .withOffsetSameInstant(ZoneOffset.UTC);
+                .withNano(0);
     }
 }

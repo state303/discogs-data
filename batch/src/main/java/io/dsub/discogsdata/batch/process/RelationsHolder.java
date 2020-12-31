@@ -16,18 +16,18 @@ public class RelationsHolder {
     private static final Map<String, ConcurrentLinkedQueue<BaseEntity>> OBJECT_RELATIONS_MAP = new ConcurrentHashMap<>();
 
     public void addSimpleRelation(Class<?> clazz, SimpleRelation simpleRelation) {
-        makeIfAbsent(clazz.getName(), SIMPLE_RELATIONS_MAP);
-        SIMPLE_RELATIONS_MAP.get(clazz.getName()).add(simpleRelation);
+        makeIfAbsent(clazz.getSimpleName(), SIMPLE_RELATIONS_MAP);
+        SIMPLE_RELATIONS_MAP.get(clazz.getSimpleName()).add(simpleRelation);
     }
 
     public <T extends BaseEntity> void addItem(Class<T> clazz, T item) {
-        makeIfAbsent(clazz.getName(), OBJECT_RELATIONS_MAP);
-        OBJECT_RELATIONS_MAP.get(clazz.getName()).add(item);
+        makeIfAbsent(clazz.getSimpleName(), OBJECT_RELATIONS_MAP);
+        OBJECT_RELATIONS_MAP.get(clazz.getSimpleName()).add(item);
     }
 
     public void addSimpleRelations(Class<?> clazz, Collection<SimpleRelation> simpleRelations) {
-        makeIfAbsent(clazz.getName(), SIMPLE_RELATIONS_MAP);
-        SIMPLE_RELATIONS_MAP.get(clazz.getName()).addAll(simpleRelations);
+        makeIfAbsent(clazz.getSimpleName(), SIMPLE_RELATIONS_MAP);
+        SIMPLE_RELATIONS_MAP.get(clazz.getSimpleName()).addAll(simpleRelations);
     }
 
     public void addSimpleRelation(String key, SimpleRelation simpleRelation) {
@@ -35,19 +35,19 @@ public class RelationsHolder {
     }
 
     public <T extends BaseEntity> void addItems(Class<T> clazz, Collection<T> items) {
-        makeIfAbsent(clazz.getName(), OBJECT_RELATIONS_MAP);
-        OBJECT_RELATIONS_MAP.get(clazz.getName()).addAll(items);
+        makeIfAbsent(clazz.getSimpleName(), OBJECT_RELATIONS_MAP);
+        OBJECT_RELATIONS_MAP.get(clazz.getSimpleName()).addAll(items);
     }
 
     public ConcurrentLinkedQueue<SimpleRelation> pullSimpleRelationsQueue(Class<?> clazz) {
-        return pullObjectRelationsQueue(clazz.getName());
+        return SIMPLE_RELATIONS_MAP.get(clazz.getSimpleName());
     }
     public ConcurrentLinkedQueue<SimpleRelation> pullSimpleRelationsQueue(String key) {
         return SIMPLE_RELATIONS_MAP.get(key);
     }
 
     public <T> ConcurrentLinkedQueue<T> pullObjectRelationsQueue(Class<T> clazz) {
-        return pullObjectRelationsQueue(clazz.getName());
+        return pullObjectRelationsQueue(clazz.getSimpleName());
     }
     public <T> ConcurrentLinkedQueue<T> pullObjectRelationsQueue(String key) {
         return (ConcurrentLinkedQueue<T>) OBJECT_RELATIONS_MAP.get(key);

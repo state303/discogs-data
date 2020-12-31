@@ -2,6 +2,7 @@ package io.dsub.discogsdata.batch.step.master;
 
 import io.dsub.discogsdata.batch.process.RelationsHolder;
 import io.dsub.discogsdata.common.entity.Genre;
+import io.dsub.discogsdata.common.entity.master.Master;
 import io.dsub.discogsdata.common.entity.master.MasterGenre;
 import io.dsub.discogsdata.common.entity.master.MasterGenre;
 import io.dsub.discogsdata.common.repository.GenreRepository;
@@ -69,10 +70,14 @@ public class MasterGenreStepConfigurer {
                 Genre entity = genreRepository.save(item.getGenre());
                 genresCache.put(entity.getName(), entity.getId());
             }
-            MasterGenre masterGenre = new MasterGenre();
-            masterGenre.setGenre(genreRepository.getOne(genresCache.get(genreStr)));
-            masterGenre.setMaster(masterRepository.getOne(masterId));
-            return masterGenre;
+
+            Genre genre = Genre.builder().id(genresCache.get(genreStr)).build();
+            Master master = Master.builder().id(masterId).build();
+
+            return MasterGenre.builder()
+                    .master(master)
+                    .genre(genre)
+                    .build();
         };
 
         AsyncItemProcessor<MasterGenre, MasterGenre> masterGenreProcessor = new AsyncItemProcessor<>();

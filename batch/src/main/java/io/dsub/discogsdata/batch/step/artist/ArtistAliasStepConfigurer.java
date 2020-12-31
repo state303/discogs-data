@@ -44,7 +44,6 @@ public class ArtistAliasStepConfigurer {
                 .processor(artistAliasProcessor())
                 .writer(artistAliasWriter())
                 .taskExecutor(taskExecutor)
-                .throttleLimit(10)
                 .build();
     }
 
@@ -75,8 +74,8 @@ public class ArtistAliasStepConfigurer {
                 return null;
             }
 
-            Artist artist = artistRepository.getOne(simpleRelation.getParentId());
-            Artist alias = artistRepository.getOne(simpleRelation.getChildId());
+            Artist artist = Artist.builder().id(simpleRelation.getParentId()).build();
+            Artist alias = Artist.builder().id(simpleRelation.getChildId()).build();
 
             if (artistAliasRepository.existsByArtistAndAlias(artist, alias)) {
                 return null;

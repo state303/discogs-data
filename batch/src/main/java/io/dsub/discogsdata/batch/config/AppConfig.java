@@ -17,11 +17,11 @@ public class AppConfig {
     public ThreadPoolTaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(10);
+        executor.setMaxPoolSize(20);
         executor.setQueueCapacity(3000);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setWaitForTasksToCompleteOnShutdown(Boolean.TRUE);
-        executor.setThreadNamePrefix("MultiThreaded-");
+        executor.setThreadNamePrefix("DiscogsBatch-");
         executor.initialize();
         return executor;
     }

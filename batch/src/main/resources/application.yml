@@ -18,6 +18,7 @@ spring:
 logging:
   level:
     io.dsub: DEBUG
+#    org.springframework: DEBUG
 server:
   error:
     include-stacktrace: never

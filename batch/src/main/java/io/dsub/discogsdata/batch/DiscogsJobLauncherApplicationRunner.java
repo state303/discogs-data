@@ -43,6 +43,7 @@ public class DiscogsJobLauncherApplicationRunner extends JobLauncherApplicationR
     @Override
     public void execute(Job job, JobParameters jobParameters) throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
         JobParameters parameters = getNextJobParameters(job, jobParameters);
+        log.debug("initial job parameters: {}", parameters);
         parameters = parameterResolver.resolve(parameters);
         log.debug("executing batch process with resolved parameters: {}", parameters);
         JobExecution execution = this.jobLauncher.run(job, parameters);

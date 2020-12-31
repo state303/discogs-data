@@ -2,7 +2,6 @@ package io.dsub.discogsdata.batch.step.label;
 
 import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
-import io.dsub.discogsdata.batch.process.XmlObjectReadListener;
 import io.dsub.discogsdata.batch.reader.CustomStaxEventItemReader;
 import io.dsub.discogsdata.batch.xml.object.XmlLabel;
 import io.dsub.discogsdata.common.entity.label.Label;
@@ -15,15 +14,11 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.integration.async.AsyncItemWriter;
 import org.springframework.batch.item.data.RepositoryItemWriter;
-import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
-import org.springframework.batch.item.database.JpaItemWriter;
-import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import javax.persistence.EntityManagerFactory;
 import java.util.concurrent.Future;
 
 @Configuration
@@ -33,7 +28,7 @@ public class LabelStepConfigurer {
     private final DumpService dumpService;
     private final ThreadPoolTaskExecutor taskExecutor;
     private final LabelRepository labelRepository;
-    private final XmlObjectReadListener xmlObjectReadListener;
+    private final XmlLabelReadListener readListener;
 
     @Bean
     @JobScope
@@ -45,10 +40,9 @@ public class LabelStepConfigurer {
                 .reader(labelReader(null))
                 .processor(asyncLabelProcessor())
                 .writer(asyncLabelWriter())
-                .stream(labelReader(null))
-                .listener(xmlObjectReadListener)
+                .listener(readListener)
                 .taskExecutor(taskExecutor)
-                .throttleLimit(100)
+                .throttleLimit(10)
                 .build();
     }
 

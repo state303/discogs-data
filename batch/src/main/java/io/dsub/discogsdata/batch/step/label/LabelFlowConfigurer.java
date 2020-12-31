@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
+
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
@@ -27,7 +29,7 @@ public class LabelFlowConfigurer {
 
     @Bean
     @JobScope
-    public Flow labelFlow(@Value("#{jobParameters['label']}") String etag) {
+    public Flow labelFlow(@Value("#{jobParameters['label']}") String etag) throws IOException {
 
         if (etag == null) {
             log.debug("etag is empty. skipping...");
@@ -38,6 +40,7 @@ public class LabelFlowConfigurer {
                 .start(labelSourceStep(null))
                 .next(labelStep)
                 .next(subLabelStep)
+                .next(labelSourceCleanupStep(null))
                 .build();
     }
 
@@ -53,6 +56,15 @@ public class LabelFlowConfigurer {
         }
         return stepBuilderFactory.get("labelSourceStep " + etag)
                 .tasklet(new FileCopyTasklet(dump))
+                .throttleLimit(1)
+                .build();
+    }
+
+    @Bean
+    @JobScope
+    public Step labelSourceCleanupStep(@Value("#{jobParameters['label']}") String etag) throws IOException {
+        return stepBuilderFactory.get("labelSourceCleanupStep")
+                .tasklet(new FileCopyTasklet(dumpService.getDumpByEtag(etag)))
                 .throttleLimit(1)
                 .build();
     }

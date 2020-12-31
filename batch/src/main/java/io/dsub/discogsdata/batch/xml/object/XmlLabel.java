@@ -32,20 +32,17 @@ public class XmlLabel extends XmlObject {
 
     @Override
     public Label toEntity() {
-
         String[] fields = new String[]{name, contactInfo, dataQuality, profile};
-
         for (int i = 0; i < fields.length; i++) {
             if (fields[i] != null && fields[i].isBlank()) {
                 fields[i] = null;
             }
         }
-
         return Label.builder()
                 .id(id)
                 .name(fields[0])
                 .contactInfo(fields[1])
-                .profile(fields[2])
+                .dataQuality(fields[2])
                 .profile(fields[3])
                 .urls(urls)
                 .build();

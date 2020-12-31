@@ -26,7 +26,7 @@ import java.util.zip.GZIPInputStream;
 @RequiredArgsConstructor
 public class CustomStaxEventItemReader<T> implements ItemReader<T>, ItemStream, InitializingBean, ResourceAwareItemReaderItemStream<T> {
 
-//    private static volatile AtomicInteger count = new AtomicInteger(0);
+    private static volatile AtomicInteger count = new AtomicInteger(0);
     private final StaxEventItemReader<T> nestedReader;
 
     public CustomStaxEventItemReader(Class<T> clazz, DiscogsDump dump) throws Exception {
@@ -49,11 +49,11 @@ public class CustomStaxEventItemReader<T> implements ItemReader<T>, ItemStream, 
     public synchronized T read() throws Exception {
 //        count.addAndGet(1);
 //
-//        if (500 < count.get()) {
-//            log.debug("Exceeded 500 count. Returning null object");
+////        if (500 < count.get()) {
+////            log.debug("Exceeded 500 count. Returning null object");
 ////            count = new AtomicInteger(0);
-//            return null;
-//        }
+////            return null;
+////        }
 
         return nestedReader.read();
     }

@@ -46,7 +46,6 @@ public class MasterArtistStepConfigurer {
                 .processor(asyncMasterArtistProcessor())
                 .writer(asyncMasterArtistWriter())
                 .taskExecutor(taskExecutor)
-                .throttleLimit(10)
                 .build();
     }
 
@@ -61,25 +60,26 @@ public class MasterArtistStepConfigurer {
     @Bean
     public AsyncItemProcessor<SimpleRelation, MasterArtist> asyncMasterArtistProcessor() throws Exception {
         ItemProcessor<SimpleRelation, MasterArtist> syncProcessor = item -> {
-            if (item.getParentId() != null &&
-                    item.getChildId() != null &&
-                    masterRepository.existsById(item.getParentId()) &&
-                    artistRepository.existsById(item.getChildId())) {
-
-                Master master = masterRepository.getOne(item.getParentId());
-                Artist artist = artistRepository.getOne(item.getChildId());
-
-                if (masterArtistRepository.existsByMasterAndArtist(master, artist)) {
-                   return null;
-                }
-
-                return MasterArtist.builder()
-                        .master(master)
-                        .artist(artist)
-                        .build();
+            if (item.getParentId() == null ||
+                    item.getChildId() == null ||
+                    !masterRepository.existsById(item.getParentId()) ||
+                    !artistRepository.existsById(item.getChildId())) {
+                return null;
             }
-            return null;
+
+            Master master = Master.builder().id(item.getParentId()).build();
+            Artist artist = Artist.builder().id(item.getChildId()).build();
+
+            if (masterArtistRepository.existsByMasterAndArtist(master, artist)) {
+                return null;
+            }
+
+            return MasterArtist.builder()
+                    .master(master)
+                    .artist(artist)
+                    .build();
         };
+
         AsyncItemProcessor<SimpleRelation, MasterArtist> asyncMasterArtistProcessor = new AsyncItemProcessor<>();
         asyncMasterArtistProcessor.setTaskExecutor(taskExecutor);
         asyncMasterArtistProcessor.setDelegate(syncProcessor);

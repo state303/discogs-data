@@ -3,6 +3,7 @@ package io.dsub.discogsdata.batch.step.master;
 import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
 import io.dsub.discogsdata.batch.dump.enums.DumpType;
+import io.dsub.discogsdata.batch.step.FileCleanupTasklet;
 import io.dsub.discogsdata.batch.step.FileCopyTasklet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,7 @@ public class MasterFlowConfigurer {
                 .split(taskExecutor)
                 .add(masterArtistFlow(), masterStyleFlow(), masterGenreFlow(), masterVideoPreFlow())
                 .next(masterVideoStep)
+                .next(masterSourceCleanupStep(null))
                 .build();
     }
 
@@ -61,6 +63,15 @@ public class MasterFlowConfigurer {
         }
         return stepBuilderFactory.get("masterSourceStep " + etag)
                 .tasklet(new FileCopyTasklet(dump))
+                .throttleLimit(1)
+                .build();
+    }
+
+    @Bean
+    @JobScope
+    public Step masterSourceCleanupStep(@Value("#{jobParameters['master']}") String etag) {
+        return stepBuilderFactory.get("masterSourceCleanupStep")
+                .tasklet(new FileCleanupTasklet(dumpService.getDumpByEtag(etag)))
                 .throttleLimit(1)
                 .build();
     }

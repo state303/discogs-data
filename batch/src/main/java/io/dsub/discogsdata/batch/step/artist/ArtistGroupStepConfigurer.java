@@ -8,23 +8,27 @@ import io.dsub.discogsdata.common.entity.artist.ArtistGroup;
 import io.dsub.discogsdata.common.repository.artist.ArtistGroupRepository;
 import io.dsub.discogsdata.common.repository.artist.ArtistRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.integration.async.AsyncItemWriter;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.CollectionUtils;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class ArtistGroupStepConfigurer {
@@ -45,39 +49,49 @@ public class ArtistGroupStepConfigurer {
                 .processor(artistGroupProcessor())
                 .writer(artistGroupWriter())
                 .taskExecutor(taskExecutor)
-                .throttleLimit(10)
                 .build();
     }
 
     @Bean
     @StepScope
     public ItemReader<SimpleRelation> artistGroupItemReader() {
-        ConcurrentLinkedQueue<SimpleRelation> queue = relationsHolder.pullSimpleRelationsQueue(XmlArtist.Group.class);
+        ConcurrentLinkedQueue<SimpleRelation> queue =
+                relationsHolder.pullSimpleRelationsQueue(XmlArtist.Group.class);
         return queue::poll;
     }
 
     @Bean
+    @StepScope
+    public ItemWriter<ArtistGroup> syncItemGroupWriter() {
+        return items -> {
+            if (!CollectionUtils.isEmpty(items)) {
+                artistGroupRepository.saveAll(items);
+            }
+        };
+    }
+
+    @Bean
+    @StepScope
     public AsyncItemWriter<ArtistGroup> artistGroupWriter() throws Exception {
-        RepositoryItemWriter<ArtistGroup> syncWriter = new RepositoryItemWriter<>();
-        syncWriter.setRepository(artistGroupRepository);
-        syncWriter.afterPropertiesSet();
         AsyncItemWriter<ArtistGroup> asyncWriter = new AsyncItemWriter<>();
-        asyncWriter.setDelegate(syncWriter);
+        asyncWriter.setDelegate(syncItemGroupWriter());
         asyncWriter.afterPropertiesSet();
         return asyncWriter;
     }
 
     @Bean
-    public AsyncItemProcessor<SimpleRelation, ArtistGroup> artistGroupProcessor() throws Exception {
-        AsyncItemProcessor<SimpleRelation, ArtistGroup> asyncItemProcessor = new AsyncItemProcessor<>();
-        asyncItemProcessor.setTaskExecutor(taskExecutor);
-        asyncItemProcessor.setDelegate(simpleRelation -> {
+    @StepScope
+    public ItemProcessor<SimpleRelation, ArtistGroup> synArtistGroupProcessor() {
+        return simpleRelation -> {
             if (!isValidRelation(simpleRelation, artistRepository)) {
                 return null;
             }
-
-            Artist artist = artistRepository.getOne(simpleRelation.getParentId());
-            Artist group = artistRepository.getOne(simpleRelation.getChildId());
+            Artist artist = Artist.builder()
+                    .id(simpleRelation.getParentId())
+                    .build();
+            Artist group = Artist.builder()
+                    .id(simpleRelation.getChildId())
+                    .build();
 
             if (artistGroupRepository.existsByArtistAndGroup(artist, group)) {
                 return null;
@@ -87,7 +101,15 @@ public class ArtistGroupStepConfigurer {
                     .artist(artist)
                     .group(group)
                     .build();
-        });
+        };
+    }
+
+    @Bean
+    @StepScope
+    public AsyncItemProcessor<SimpleRelation, ArtistGroup> artistGroupProcessor() throws Exception {
+        AsyncItemProcessor<SimpleRelation, ArtistGroup> asyncItemProcessor = new AsyncItemProcessor<>();
+        asyncItemProcessor.setTaskExecutor(taskExecutor);
+        asyncItemProcessor.setDelegate(synArtistGroupProcessor());
         asyncItemProcessor.afterPropertiesSet();
         return asyncItemProcessor;
     }

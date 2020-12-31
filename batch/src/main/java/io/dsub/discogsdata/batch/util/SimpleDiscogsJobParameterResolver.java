@@ -29,6 +29,12 @@ public class SimpleDiscogsJobParameterResolver implements DiscogsJobParameterRes
         JobParametersBuilder builder = new JobParametersBuilder();
         builder.addLong(CHUNK_SIZE_KEY, extractChunkSize(parameters));
 
+        Long runId = parameters.getLong("run.id");
+
+        if (runId != null) {
+            builder.addLong("run.id", runId);
+        }
+
         if (isValidEntryPresent(parameters, ETAG_KEY)) {
             builder.addJobParameters(extractEtagList(parameters));
             return builder.toJobParameters();

@@ -13,19 +13,17 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -34,10 +32,10 @@ public class SimpleDumpFetcher implements DumpFetcher {
     private static final String DISCOGS_DATA_BASE_URL = "https://data.discogs.com/";
     public static String LAST_KNOWN_BUCKET_URL = "https://discogs-data.s3-us-west-2.amazonaws.com";
 
-    private static boolean isWithinValidRange(OffsetDateTime offsetDateTime) {
+    private static boolean isWithinValidRange(LocalDateTime targetDateTime) {
         LocalDate that = LocalDate.of(2018, 1, 1);
-        LocalDate localDate = offsetDateTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDate();
-        return (localDate.isEqual(that) || localDate.isAfter(that));
+        LocalDate targetDate = targetDateTime.toLocalDate();
+        return (targetDate.isEqual(that) || targetDate.isAfter(that));
     }
 
     private static DumpType getDumpType(String dumpKey) {
@@ -92,7 +90,7 @@ public class SimpleDumpFetcher implements DumpFetcher {
     public DiscogsDump parseDump(NodeList dataNodeList) {
         DumpType dumpType = null;
         String uri = "";
-        OffsetDateTime lastModified = null;
+        LocalDateTime lastModified = null;
         String etag = "";
         long size = 0L;
 
@@ -107,7 +105,9 @@ public class SimpleDumpFetcher implements DumpFetcher {
                         break;
                     case "LastModified":
                         lastModified = OffsetDateTime
-                                .parse(data.getTextContent());
+                                .parse(data.getTextContent())
+                                .withOffsetSameInstant(ZoneOffset.UTC)
+                                .toLocalDateTime();
                         break;
                     case "ETag":
                         etag = data.getTextContent().replace("\"", "");

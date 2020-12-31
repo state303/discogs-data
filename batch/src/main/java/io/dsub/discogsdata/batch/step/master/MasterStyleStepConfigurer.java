@@ -2,6 +2,7 @@ package io.dsub.discogsdata.batch.step.master;
 
 import io.dsub.discogsdata.batch.process.RelationsHolder;
 import io.dsub.discogsdata.common.entity.Style;
+import io.dsub.discogsdata.common.entity.master.Master;
 import io.dsub.discogsdata.common.entity.master.MasterStyle;
 import io.dsub.discogsdata.common.repository.StyleRepository;
 import io.dsub.discogsdata.common.repository.master.MasterRepository;
@@ -66,10 +67,14 @@ public class MasterStyleStepConfigurer {
                 Style entity = styleRepository.save(item.getStyle());
                 stylesCache.put(entity.getName(), entity.getId());
             }
-            MasterStyle masterStyle = new MasterStyle();
-            masterStyle.setStyle(styleRepository.getOne(stylesCache.get(styleStr)));
-            masterStyle.setMaster(masterRepository.getOne(masterId));
-            return masterStyle;
+
+            Style style = Style.builder().id(stylesCache.get(styleStr)).build();
+            Master master = Master.builder().id(masterId).build();
+
+            return MasterStyle.builder()
+                    .master(master)
+                    .style(style)
+                    .build();
         };
 
         AsyncItemProcessor<MasterStyle, MasterStyle> masterStyleProcessor = new AsyncItemProcessor<>();

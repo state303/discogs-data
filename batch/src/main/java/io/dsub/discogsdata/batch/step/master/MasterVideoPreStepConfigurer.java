@@ -45,7 +45,6 @@ public class MasterVideoPreStepConfigurer {
                 .processor(masterVideoUrlProcessor())
                 .writer(masterVideoUrlWriter())
                 .taskExecutor(taskExecutor)
-                .throttleLimit(10)
                 .build();
     }
 

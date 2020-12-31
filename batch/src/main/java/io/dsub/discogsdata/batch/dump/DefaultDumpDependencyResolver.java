@@ -6,10 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -39,13 +36,13 @@ public class DefaultDumpDependencyResolver implements DumpDependencyResolver {
 
     @Override
     public List<DiscogsDump> resolveByYearMonth(String yearMonth) {
-        OffsetDateTime targetDateTime = parseOffsetDateTimeByYearMonth(yearMonth);
+        LocalDateTime targetDateTime = parseDateTimeByYearMonth(yearMonth);
         return new ArrayList<>(dumpService.getDumpListInRange(targetDateTime, targetDateTime.plusMonths(1)));
     }
 
     @Override
     public List<DiscogsDump> resolveByTypeAndYearMonth(Collection<String> types, String yearMonth) {
-        OffsetDateTime targetDateTime = parseOffsetDateTimeByYearMonth(yearMonth);
+        LocalDateTime targetDateTime = parseDateTimeByYearMonth(yearMonth);
 
         List<DumpType> typeList = types.stream()
                 .map(String::toUpperCase)
@@ -81,13 +78,13 @@ public class DefaultDumpDependencyResolver implements DumpDependencyResolver {
         return dumpMap;
     }
 
-    private OffsetDateTime parseOffsetDateTimeByYearMonth(String yearMonth) {
+    private LocalDateTime parseDateTimeByYearMonth(String yearMonth) {
         List<Integer> nums = Arrays.stream(yearMonth.split("-"))
                 .map(Integer::parseInt)
                 .collect(Collectors.toList());
 
         LocalDate localDate = LocalDate.of(nums.get(0), nums.get(1), 1);
-        return OffsetDateTime.of(localDate, LocalTime.MIN, ZoneOffset.UTC);
+        return LocalDateTime.of(localDate, LocalTime.MIN);
     }
 
     private Map<DumpType, DiscogsDump> resolveDumpDependency(Map<DumpType, DiscogsDump> dumpMap) {
@@ -110,7 +107,7 @@ public class DefaultDumpDependencyResolver implements DumpDependencyResolver {
         List<DumpType> dependantTypes = getDependantTypes(dumpType);
         DiscogsDump referenceDump = dumpMap.get(dumpType);
 
-        OffsetDateTime targetDateTime = referenceDump.getLastModified().withOffsetSameInstant(ZoneOffset.UTC);
+        LocalDateTime targetDateTime = referenceDump.getLastModified();
         log.debug("resolving dependencies. fetching relevant dumps from: " + targetDateTime.getMonth() + ", " + targetDateTime.getYear());
         List<DiscogsDump> list = dumpService.getDumpListInYearMonth(targetDateTime.getYear(), targetDateTime.getMonthValue());
         list.stream()

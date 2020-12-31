@@ -2,6 +2,8 @@ package io.dsub.discogsdata.batch.step.master;
 
 import io.dsub.discogsdata.batch.process.RelationsHolder;
 import io.dsub.discogsdata.batch.process.SimpleRelation;
+import io.dsub.discogsdata.common.entity.Video;
+import io.dsub.discogsdata.common.entity.master.Master;
 import io.dsub.discogsdata.common.entity.master.MasterVideo;
 import io.dsub.discogsdata.common.repository.VideoRepository;
 import io.dsub.discogsdata.common.repository.master.MasterRepository;
@@ -43,7 +45,6 @@ public class MasterVideoStepConfigurer {
                 .processor(masterVideoProcessor())
                 .writer(masterVideoWriter())
                 .taskExecutor(taskExecutor)
-                .throttleLimit(10)
                 .build();
     }
 
@@ -64,11 +65,13 @@ public class MasterVideoStepConfigurer {
                     !videoRepository.existsById(item.getChildId())) {
                 return null;
             }
-            masterRepository.getOne(item.getParentId());
-            videoRepository.getOne(item.getChildId());
+
+            Master master = Master.builder().id(item.getParentId()).build();
+            Video video = Video.builder().id(item.getChildId()).build();
+
             return  MasterVideo.builder()
-                    .master(masterRepository.getOne(item.getParentId()))
-                    .video(videoRepository.getOne(item.getChildId()))
+                    .master(master)
+                    .video(video)
                     .build();
         };
 

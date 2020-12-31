@@ -3,10 +3,7 @@ package io.dsub.discogsdata.common.entity.label;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 

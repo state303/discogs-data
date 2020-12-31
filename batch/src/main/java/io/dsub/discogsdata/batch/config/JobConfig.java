@@ -28,8 +28,6 @@ import java.nio.file.Path;
 @RequiredArgsConstructor
 public class JobConfig {
     private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
-    private final DumpService dumpService;
     private final JobParametersValidator discogsJobParametersValidator;
     private final Flow artistFlow;
     private final Flow labelFlow;

@@ -2,13 +2,9 @@ package io.dsub.discogsdata.batch.step.master;
 
 import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
-import io.dsub.discogsdata.batch.process.XmlObjectReadListener;
 import io.dsub.discogsdata.batch.reader.CustomStaxEventItemReader;
-import io.dsub.discogsdata.batch.xml.object.XmlLabel;
 import io.dsub.discogsdata.batch.xml.object.XmlMaster;
-import io.dsub.discogsdata.common.entity.label.Label;
 import io.dsub.discogsdata.common.entity.master.Master;
-import io.dsub.discogsdata.common.repository.label.LabelRepository;
 import io.dsub.discogsdata.common.repository.master.MasterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Step;
@@ -32,7 +28,7 @@ public class MasterStepConfigurer {
     private final DumpService dumpService;
     private final ThreadPoolTaskExecutor taskExecutor;
     private final MasterRepository masterRepository;
-    private final XmlObjectReadListener xmlObjectReadListener;
+    private final XmlMasterReadListener readListener;
 
     @Bean
     @JobScope
@@ -42,7 +38,7 @@ public class MasterStepConfigurer {
                 .reader(masterReader(null))
                 .processor(asyncMasterProcessor())
                 .writer(asyncMasterWriter())
-                .listener(xmlObjectReadListener)
+                .listener(readListener)
                 .stream(masterReader(null))
                 .taskExecutor(taskExecutor)
                 .throttleLimit(10)

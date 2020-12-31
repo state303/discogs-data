@@ -3,7 +3,6 @@ package io.dsub.discogsdata.batch.step.artist;
 import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
 import io.dsub.discogsdata.batch.dump.enums.DumpType;
-import io.dsub.discogsdata.batch.process.XmlObjectReadListener;
 import io.dsub.discogsdata.batch.reader.CustomStaxEventItemReader;
 import io.dsub.discogsdata.batch.xml.object.XmlArtist;
 import io.dsub.discogsdata.common.entity.artist.Artist;
@@ -32,7 +31,7 @@ public class ArtistStepConfigurer {
     private final StepBuilderFactory stepBuilderFactory;
     private final DumpService dumpService;
     private final ThreadPoolTaskExecutor taskExecutor;
-    private final XmlObjectReadListener xmlObjectReadListener;
+    private final XmlArtistReadListener readListener;
     private final ArtistRepository artistRepository;
 
     private String etag;
@@ -49,7 +48,7 @@ public class ArtistStepConfigurer {
                 .reader(artistReader())
                 .processor(asyncArtistProcessor())
                 .writer(asyncArtistWriter())
-                .listener(xmlObjectReadListener)
+                .listener(readListener)
                 .taskExecutor(taskExecutor)
                 .throttleLimit(10)
                 .build();
@@ -78,9 +77,5 @@ public class ArtistStepConfigurer {
     public CustomStaxEventItemReader<XmlArtist> artistReader() throws Exception {
         DiscogsDump artistDump = dumpService.getDumpByEtag(etag);
         return new CustomStaxEventItemReader<>(XmlArtist.class, artistDump);
-    }
-
-    private String getDefaultEtag() {
-        return dumpService.getMostRecentDumpByType(DumpType.ARTIST).getEtag();
     }
 }

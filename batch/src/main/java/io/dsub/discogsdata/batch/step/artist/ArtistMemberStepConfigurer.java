@@ -44,14 +44,14 @@ public class ArtistMemberStepConfigurer {
                 .processor(artistMemberProcessor())
                 .writer(artistMemberWriter())
                 .taskExecutor(taskExecutor)
-                .throttleLimit(10)
                 .build();
     }
 
     @Bean
     @StepScope
     public ItemReader<SimpleRelation> artistMemberItemReader() {
-        ConcurrentLinkedQueue<SimpleRelation> queue = relationsHolder.pullSimpleRelationsQueue(XmlArtist.Member.class);
+        ConcurrentLinkedQueue<SimpleRelation> queue =
+                relationsHolder.pullSimpleRelationsQueue(XmlArtist.Member.class);
         return queue::poll;
     }
 
@@ -75,8 +75,8 @@ public class ArtistMemberStepConfigurer {
                 return null;
             }
 
-            Artist artist = artistRepository.getOne(simpleRelation.getParentId());
-            Artist member = artistRepository.getOne(simpleRelation.getChildId());
+            Artist artist = Artist.builder().id(simpleRelation.getParentId()).build();
+            Artist member = Artist.builder().id(simpleRelation.getChildId()).build();
 
             if (artistMemberRepository.existsByArtistAndMember(artist, member)) {
                 return null;
