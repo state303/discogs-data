@@ -26,6 +26,7 @@ public class SimpleDiscogsJobParameterResolver implements DiscogsJobParameterRes
 
     @Override
     public JobParameters resolve(JobParameters parameters) {
+
         JobParametersBuilder builder = new JobParametersBuilder();
         builder.addLong(CHUNK_SIZE_KEY, extractChunkSize(parameters));
 
@@ -128,7 +129,15 @@ public class SimpleDiscogsJobParameterResolver implements DiscogsJobParameterRes
         if (entryKey == null) {
             return null;
         }
-        return parameters.getLong(entryKey);
+        try {
+            String strLongVal = parameters.getString(entryKey);
+            if (strLongVal == null) {
+                return null;
+            }
+            return Long.parseLong(strLongVal);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private String getString(JobParameters parameters, String key) {

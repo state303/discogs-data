@@ -42,7 +42,6 @@ public class LabelStepConfigurer {
                 .writer(asyncLabelWriter())
                 .listener(readListener)
                 .taskExecutor(taskExecutor)
-                .throttleLimit(10)
                 .build();
     }
 

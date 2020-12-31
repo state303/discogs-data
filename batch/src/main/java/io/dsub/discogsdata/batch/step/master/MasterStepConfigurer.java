@@ -41,7 +41,6 @@ public class MasterStepConfigurer {
                 .listener(readListener)
                 .stream(masterReader(null))
                 .taskExecutor(taskExecutor)
-                .throttleLimit(10)
                 .build();
     }
 

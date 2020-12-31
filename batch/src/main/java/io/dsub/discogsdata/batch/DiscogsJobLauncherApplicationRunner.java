@@ -42,17 +42,17 @@ public class DiscogsJobLauncherApplicationRunner extends JobLauncherApplicationR
 
     @Override
     public void execute(Job job, JobParameters jobParameters) throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
-        JobParameters parameters = getNextJobParameters(job, jobParameters);
+        JobParameters parameters = new JobParametersBuilder()
+                .addJobParameters(getNextJobParameters(job, jobParameters))
+                .addJobParameters(jobParameters)
+                .toJobParameters();
+
         log.debug("initial job parameters: {}", parameters);
         parameters = parameterResolver.resolve(parameters);
         log.debug("executing batch process with resolved parameters: {}", parameters);
         JobExecution execution = this.jobLauncher.run(job, parameters);
         log.debug("jobInstance id: {}", execution.getJobInstance());
     }
-
-    /*
-     * Identical copies of methods from JobLauncherApplicationRunner.class, as the access modifiers are set to private.
-     * */
 
     private JobParameters getNextJobParameters(Job job, JobParameters jobParameters) {
         if (this.jobRepository != null && this.jobRepository.isJobInstanceExists(job.getName(), jobParameters)) {
@@ -66,7 +66,15 @@ public class DiscogsJobLauncherApplicationRunner extends JobLauncherApplicationR
                 .getNextJobParameters(job)
                 .toJobParameters();
 
-        return merge(nextParameters, jobParameters);
+        nextParameters = merge(nextParameters, jobParameters);
+
+        JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
+
+        nextParameters.getParameters().entrySet().stream()
+                .filter(entry -> !entry.getKey().equalsIgnoreCase("chunkSize"))
+                .forEach(entry -> jobParametersBuilder.addParameter(entry.getKey(), entry.getValue()));
+
+        return jobParametersBuilder.toJobParameters();
     }
 
     private JobParameters getNextJobParametersForExisting(Job job, JobParameters jobParameters) {

@@ -50,7 +50,6 @@ public class ArtistStepConfigurer {
                 .writer(asyncArtistWriter())
                 .listener(readListener)
                 .taskExecutor(taskExecutor)
-                .throttleLimit(10)
                 .build();
     }
 
