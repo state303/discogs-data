@@ -1,14 +1,14 @@
 package io.dsub.discogsdata.batch.step.master;
 
-import io.dsub.discogsdata.batch.process.RelationsHolder;
-import io.dsub.discogsdata.batch.process.SimpleRelation;
-import io.dsub.discogsdata.common.entity.Video;
+import io.dsub.discogsdata.batch.dump.DumpService;
+import io.dsub.discogsdata.batch.process.DumpCache;
+import io.dsub.discogsdata.batch.reader.CustomStaxEventItemReader;
+import io.dsub.discogsdata.batch.xml.object.XmlMaster;
 import io.dsub.discogsdata.common.entity.master.Master;
 import io.dsub.discogsdata.common.entity.master.MasterVideo;
-import io.dsub.discogsdata.common.repository.VideoRepository;
-import io.dsub.discogsdata.common.repository.master.MasterRepository;
 import io.dsub.discogsdata.common.repository.master.MasterVideoRepository;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
@@ -23,73 +23,63 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 @Configuration
 @RequiredArgsConstructor
 public class MasterVideoStepConfigurer {
+
     private final StepBuilderFactory stepBuilderFactory;
-    private final ThreadPoolTaskExecutor taskExecutor;
-    private final RelationsHolder relationsHolder;
-    private final MasterRepository masterRepository;
-    private final VideoRepository videoRepository;
     private final MasterVideoRepository masterVideoRepository;
+    private final DumpService dumpService;
+    private final ThreadPoolTaskExecutor taskExecutor;
 
     @Bean
     @JobScope
     public Step masterVideoStep(@Value("#{jobParameters['master']}") String etag, @Value("#{jobParameters['chunkSize']}") int chunkSize) throws Exception {
         return stepBuilderFactory.get("masterVideoStep " + etag)
-                .<SimpleRelation, Future<MasterVideo>>chunk(chunkSize)
-                .reader(masterVideoReader())
-                .processor(masterVideoProcessor())
-                .writer(masterVideoWriter())
+                .<XmlMaster, Future<List<MasterVideo>>>chunk(chunkSize)
+                .reader(masterVideoItemReader(null))
+                .processor(asyncMasterVideoProcessor())
+                .writer(asyncMasterVideoWriter())
                 .taskExecutor(taskExecutor)
+                .throttleLimit(10)
                 .build();
     }
 
     @Bean
     @StepScope
-    public ItemReader<SimpleRelation> masterVideoReader() {
-        ConcurrentLinkedQueue<SimpleRelation> queue =
-                relationsHolder.pullSimpleRelationsQueue("MasterVideoTemporary");
-        return queue::poll;
+    public ItemReader<XmlMaster> masterVideoItemReader(@Value("#{jobParameters['master']}") String etag) throws Exception {
+        return new CustomStaxEventItemReader<>(XmlMaster.class, dumpService.getDumpByEtag(etag));
     }
 
     @Bean
-    public AsyncItemProcessor<SimpleRelation, MasterVideo> masterVideoProcessor() throws Exception {
-        ItemProcessor<SimpleRelation, MasterVideo> syncProcessor = item -> {
-            if (item.getParentId() == null ||
-                    item.getChildId() == null ||
-                    !masterRepository.existsById(item.getParentId()) ||
-                    !videoRepository.existsById(item.getChildId())) {
-                return null;
+    @StepScope
+    public AsyncItemProcessor<XmlMaster, List<MasterVideo>> asyncMasterVideoProcessor() {
+        AsyncItemProcessor<XmlMaster, List<MasterVideo>> asyncItemProcessor = new AsyncItemProcessor<>();
+        asyncItemProcessor.setTaskExecutor(taskExecutor);
+        asyncItemProcessor.setDelegate(xmlMaster -> xmlMaster.getVideos().stream()
+                .map(XmlMaster.Video::toVideoEntity)
+                .peek(video -> video.setMaster(Master.builder().id(xmlMaster.getId()).build()))
+                .collect(Collectors.toList()));
+        return asyncItemProcessor;
+    }
+
+    @Bean
+    @StepScope
+    public AsyncItemWriter<List<MasterVideo>> asyncMasterVideoWriter() throws Exception {
+        RepositoryItemWriter<List<MasterVideo>> syncMasterVideoRepositoryWriter = new RepositoryItemWriter<>() {
+            @Override
+            protected void doWrite(List<? extends List<MasterVideo>> items) {
+                items.forEach(masterVideoRepository::saveAll);
             }
-
-            Master master = Master.builder().id(item.getParentId()).build();
-            Video video = Video.builder().id(item.getChildId()).build();
-
-            return  MasterVideo.builder()
-                    .master(master)
-                    .video(video)
-                    .build();
         };
-
-        AsyncItemProcessor<SimpleRelation, MasterVideo> masterVideoProcessor = new AsyncItemProcessor<>();
-        masterVideoProcessor.setTaskExecutor(taskExecutor);
-        masterVideoProcessor.setDelegate(syncProcessor);
-        masterVideoProcessor.afterPropertiesSet();
-        return masterVideoProcessor;
-    }
-
-    @Bean
-    public AsyncItemWriter<MasterVideo> masterVideoWriter() throws Exception {
-        RepositoryItemWriter<MasterVideo> syncWriter = new RepositoryItemWriter<>();
-        syncWriter.setRepository(masterVideoRepository);
-        syncWriter.afterPropertiesSet();
-        AsyncItemWriter<MasterVideo> masterVideoWriter = new AsyncItemWriter<>();
-        masterVideoWriter.setDelegate(syncWriter);
-        masterVideoWriter.afterPropertiesSet();
-        return masterVideoWriter;
+        AsyncItemWriter<List<MasterVideo>> asyncItemWriter = new AsyncItemWriter<>();
+        asyncItemWriter.setDelegate(syncMasterVideoRepositoryWriter);
+        asyncItemWriter.afterPropertiesSet();
+        return asyncItemWriter;
     }
 }

@@ -1,9 +1,7 @@
-package io.dsub.discogsdata.common.entity;
+package io.dsub.discogsdata.common.entity.release;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.dsub.discogsdata.common.entity.base.BaseEntity;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -14,7 +12,8 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Format {
+@EqualsAndHashCode(callSuper = false)
+public class Format extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

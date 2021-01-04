@@ -1,97 +1,88 @@
 package io.dsub.discogsdata.batch.step.master;
 
-import io.dsub.discogsdata.batch.process.RelationsHolder;
+import io.dsub.discogsdata.batch.process.DumpCache;
+import io.dsub.discogsdata.batch.process.SimpleRelation;
 import io.dsub.discogsdata.common.entity.Style;
 import io.dsub.discogsdata.common.entity.master.Master;
 import io.dsub.discogsdata.common.entity.master.MasterStyle;
-import io.dsub.discogsdata.common.repository.StyleRepository;
-import io.dsub.discogsdata.common.repository.master.MasterRepository;
 import io.dsub.discogsdata.common.repository.master.MasterStyleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.integration.async.AsyncItemWriter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
 @Configuration
 @RequiredArgsConstructor
 public class MasterStyleStepConfigurer {
+
+    private final MasterStyleRepository masterStyleRepository;
+    private final DumpCache dumpCache;
     private final StepBuilderFactory stepBuilderFactory;
     private final ThreadPoolTaskExecutor taskExecutor;
-    private final RelationsHolder relationsHolder;
-    private final MasterStyleRepository masterStyleRepository;
-    private final MasterRepository masterRepository;
-    private final StyleRepository styleRepository;
-    private final Map<String, Long> stylesCache;
 
     @Bean
-    @StepScope
+    @JobScope
     public Step masterStyleStep(@Value("#{jobParameters['master']}") String etag, @Value("#{jobParameters['chunkSize']}") int chunkSize) throws Exception {
         return stepBuilderFactory.get("masterStyleStep " + etag)
-                .<MasterStyle, Future<MasterStyle>>chunk(chunkSize)
+                .<SimpleRelation, Future<MasterStyle>>chunk(chunkSize)
                 .reader(masterStyleReader())
-                .processor(masterStyleProcessor())
-                .writer(masterStyleWriter())
+                .processor(asyncMasterStyleProcessor())
+                .writer(asyncMasterStyleWriter())
+                .taskExecutor(taskExecutor)
                 .build();
     }
 
     @Bean
     @StepScope
-    public ItemReader<MasterStyle> masterStyleReader() {
-        ConcurrentLinkedQueue<MasterStyle> queue =
-                relationsHolder.pullObjectRelationsQueue(MasterStyle.class);
+    public ItemReader<SimpleRelation> masterStyleReader() {
+        ConcurrentLinkedQueue<SimpleRelation> queue =
+                dumpCache.pullSimpleRelationsQueue(MasterStyle.class);
         return queue::poll;
     }
 
     @Bean
-    public AsyncItemProcessor<MasterStyle, MasterStyle> masterStyleProcessor() throws Exception {
-        ItemProcessor<MasterStyle, MasterStyle> syncProcessor = item -> {
-            Long masterId = item.getMaster().getId();
-            String styleStr = item.getStyle().getName();
-            if (masterId == null || styleStr == null || !masterRepository.existsById(masterId)) {
-                return null;
-            }
-            if (!stylesCache.containsKey(styleStr)) {
-                Style entity = styleRepository.save(item.getStyle());
-                stylesCache.put(entity.getName(), entity.getId());
-            }
-
-            Style style = Style.builder().id(stylesCache.get(styleStr)).build();
-            Master master = Master.builder().id(masterId).build();
-
+    @StepScope
+    public AsyncItemProcessor<SimpleRelation, MasterStyle> asyncMasterStyleProcessor() throws Exception {
+        ItemProcessor<SimpleRelation, MasterStyle> processor = item -> {
+            Master master = Master.builder().id((Long)item.getParent()).build();
+            Style style = Style.builder().id(dumpCache.getStyleId(String.valueOf(item.getChild()))).build();
             return MasterStyle.builder()
                     .master(master)
                     .style(style)
                     .build();
         };
 
-        AsyncItemProcessor<MasterStyle, MasterStyle> masterStyleProcessor = new AsyncItemProcessor<>();
-        masterStyleProcessor.setDelegate(syncProcessor);
-        masterStyleProcessor.setTaskExecutor(taskExecutor);
-        masterStyleProcessor.afterPropertiesSet();
-        return masterStyleProcessor;
+        AsyncItemProcessor<SimpleRelation, MasterStyle> asyncItemProcessor = new AsyncItemProcessor<>();
+        asyncItemProcessor.setTaskExecutor(taskExecutor);
+        asyncItemProcessor.setDelegate(processor);
+        asyncItemProcessor.afterPropertiesSet();
+        return asyncItemProcessor;
     }
 
     @Bean
-    public AsyncItemWriter<MasterStyle> masterStyleWriter() throws Exception {
-        RepositoryItemWriter<MasterStyle> syncWriter = new RepositoryItemWriter<>();
-        syncWriter.setRepository(masterStyleRepository);
-        syncWriter.afterPropertiesSet();
-        AsyncItemWriter<MasterStyle> masterStyleWriter = new AsyncItemWriter<>();
-        masterStyleWriter.setDelegate(syncWriter);
-        masterStyleWriter.afterPropertiesSet();
-        return masterStyleWriter;
+    @StepScope
+    public AsyncItemWriter<MasterStyle> asyncMasterStyleWriter() throws Exception {
+        RepositoryItemWriter<MasterStyle> writer = new RepositoryItemWriterBuilder<MasterStyle>()
+                .repository(masterStyleRepository)
+                .build();
+        AsyncItemWriter<MasterStyle> asyncItemWriter = new AsyncItemWriter<>();
+        asyncItemWriter.setDelegate(writer);
+        asyncItemWriter.afterPropertiesSet();
+        return asyncItemWriter;
     }
 }

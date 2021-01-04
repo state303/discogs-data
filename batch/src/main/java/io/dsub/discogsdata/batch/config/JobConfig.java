@@ -32,15 +32,19 @@ public class JobConfig {
     private final Flow artistFlow;
     private final Flow labelFlow;
     private final Flow masterFlow;
+    private final Flow releaseFlow;
+    private final Step masterMainReleaseStep;
 
     @Bean
     public Job job() {
         return jobBuilderFactory.get("job")
                 .incrementer(new RunIdIncrementer())
                 .validator(discogsJobParametersValidator)
-                .start(artistFlow)
-                .next(labelFlow)
-                .next(masterFlow)
+//                .start(artistFlow)
+//                .start(labelFlow)
+                .start(masterFlow)
+                .next(releaseFlow)
+                .next(masterMainReleaseStep)
                 .end()
                 .listener(new JobExecutionListener() {
                     public void beforeJob(JobExecution jobExecution) {

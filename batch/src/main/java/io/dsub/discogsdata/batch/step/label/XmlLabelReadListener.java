@@ -1,6 +1,6 @@
 package io.dsub.discogsdata.batch.step.label;
 
-import io.dsub.discogsdata.batch.process.RelationsHolder;
+import io.dsub.discogsdata.batch.process.DumpCache;
 import io.dsub.discogsdata.batch.process.SimpleRelation;
 import io.dsub.discogsdata.batch.step.XmlObjectReadListener;
 import io.dsub.discogsdata.batch.xml.object.XmlLabel;
@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class XmlLabelReadListener extends XmlObjectReadListener<XmlLabel> {
 
-    public XmlLabelReadListener(RelationsHolder relationsHolder) {
-        super(relationsHolder);
+    public XmlLabelReadListener(DumpCache dumpCache) {
+        super(dumpCache);
     }
 
     @Override
@@ -22,7 +22,7 @@ public class XmlLabelReadListener extends XmlObjectReadListener<XmlLabel> {
         }
         if (item.getSubLabels() != null && item.getSubLabels().size() > 0) {
             item.getSubLabels().forEach(
-                    ref -> relationsHolder.addSimpleRelation(
+                    ref -> dumpCache.addSimpleRelation(
                             ref.getClass(), new SimpleRelation(item.getId(), ref.getId())));
         }
     }

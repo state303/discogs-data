@@ -5,7 +5,9 @@ import io.dsub.discogsdata.common.entity.master.Master;
 import lombok.*;
 
 import javax.persistence.*;
-import java.time.Instant;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -31,20 +33,17 @@ public class ReleaseItem extends BaseTimeEntity {
 
     private String dataQuality;
 
-    /*
-     * Actual mapping value to be injected. This makes possible to insert WITHOUT fetching
-     * the mapped object first (faster)
-     */
-    @Column(name = "master_id")
-    private Long masterId;
+    @Builder.Default
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Identifier> identifiers = new ArrayList<>();
 
-    /*
-     * Convenient READ_ONLY access for actually mapped class.
-     * NOTE: mark any FetchType to avoid warning about immutability.
-     */
-    @JoinColumn(name = "master_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = Master.class, fetch = FetchType.LAZY)
+    @Builder.Default
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Format> formats = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "master_id")
     private Master master;
 
-    private Instant releaseDate;
+    private LocalDate releaseDate;
 }

@@ -1,11 +1,15 @@
 package io.dsub.discogsdata.batch.xml.object;
 
 import io.dsub.discogsdata.common.entity.master.Master;
+import io.dsub.discogsdata.common.entity.master.MasterVideo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.xml.bind.annotation.*;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -20,15 +24,15 @@ public class XmlMaster extends XmlObject {
 
     @XmlElementWrapper(name = "artists")
     @XmlElement(name = "artist")
-    private Set<ArtistInfo> artists;
+    private Set<ArtistInfo> artists = new HashSet<>();
 
     @XmlElementWrapper(name = "genres")
     @XmlElement(name = "genre")
-    private Set<String> genres;
+    private Set<String> genres = new HashSet<>();
 
     @XmlElementWrapper(name = "styles")
     @XmlElement(name = "style")
-    private Set<String> styles;
+    private Set<String> styles = new HashSet<>();
 
     @XmlElement(name = "year")
     private Short year;
@@ -41,7 +45,7 @@ public class XmlMaster extends XmlObject {
 
     @XmlElementWrapper(name = "videos")
     @XmlElement(name = "video")
-    private Set<Video> videos;
+    private Set<Video> videos = new HashSet<>();
 
     @Override
     public Master toEntity() {
@@ -75,5 +79,12 @@ public class XmlMaster extends XmlObject {
         private String description;
         @XmlAttribute(name = "src")
         private String url;
+        public MasterVideo toVideoEntity() {
+            return MasterVideo.builder()
+                    .title(title)
+                    .url(url)
+                    .description(description)
+                    .build();
+        }
     }
 }

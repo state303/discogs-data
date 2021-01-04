@@ -1,5 +1,6 @@
 package io.dsub.discogsdata.common.entity;
 
+import io.dsub.discogsdata.common.entity.base.BaseEntity;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import lombok.*;
 
@@ -13,7 +14,8 @@ import javax.persistence.Id;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Genre {
+@EqualsAndHashCode(callSuper = false)
+public class Genre extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

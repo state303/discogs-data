@@ -1,6 +1,7 @@
 package io.dsub.discogsdata.common.entity.release;
 
 import io.dsub.discogsdata.common.entity.base.BaseEntity;
+import io.dsub.discogsdata.common.entity.release.ReleaseItem;
 import lombok.*;
 
 import javax.persistence.*;
@@ -11,16 +12,18 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class ReleaseVideo extends BaseEntity {
+public class Track extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
+    private String name;
+    @Column(columnDefinition = "TEXT")
     private String title;
-    @Column(columnDefinition = "TEXT")
-    private String description;
-    @Column(columnDefinition = "TEXT")
-    private String url;
+    @Column(length = 1000)
+    private String duration;
+
     @ManyToOne
+    @JoinColumn(name = "release_item_id")
     private ReleaseItem releaseItem;
 }

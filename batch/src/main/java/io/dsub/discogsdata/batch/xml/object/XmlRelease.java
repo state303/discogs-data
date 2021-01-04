@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import javax.xml.bind.annotation.*;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -83,6 +84,21 @@ public class XmlRelease extends XmlObject {
                 .country(country)
                 .notes(notes)
                 .dataQuality(dataQuality)
+                .identifiers(identifiers.stream()
+                        .map(identifier -> io.dsub.discogsdata.common.entity.release.Identifier.builder()
+                                .description(identifier.description)
+                                .type(identifier.type)
+                                .value(identifier.value)
+                                .build())
+                        .collect(Collectors.toList()))
+                .formats(formats.stream()
+                        .map(format -> io.dsub.discogsdata.common.entity.release.Format.builder()
+                        .description(format.description)
+                        .name(format.name)
+                        .qty(format.qty)
+                        .text(format.text)
+                        .build())
+                        .collect(Collectors.toList()))
                 .releaseDate(MalformedDateParser.parse(releaseDate))
                 .build();
     }

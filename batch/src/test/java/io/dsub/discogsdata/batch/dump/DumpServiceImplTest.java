@@ -9,6 +9,7 @@ import org.mockito.*;
 import org.mockito.internal.verification.MockAwareVerificationMode;
 import org.springframework.data.domain.Example;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -76,8 +77,8 @@ class DumpServiceImplTest {
 
     @Test
     void getDumpListInRange() {
-        OffsetDateTime start = OffsetDateTime.MIN;
-        OffsetDateTime end = OffsetDateTime.MAX;
+        LocalDateTime start = LocalDateTime.MIN;
+        LocalDateTime end = LocalDateTime.MAX;
         List<DiscogsDump> list = List.of(new DiscogsDump());
         given(dumpRepository.findAllByLastModifiedIsBetween(start, end))
                 .willReturn(list);
@@ -88,8 +89,8 @@ class DumpServiceImplTest {
 
     @Test
     void getDumpByDumpTypeInRange() {
-        OffsetDateTime start = OffsetDateTime.MIN;
-        OffsetDateTime end = OffsetDateTime.MAX;
+        LocalDateTime start = LocalDateTime.MIN;
+        LocalDateTime end = LocalDateTime.MAX;
         DiscogsDump artistDump = new DiscogsDump();
         given(dumpRepository.findByDumpTypeAndLastModifiedIsBetween(DumpType.ARTIST, start, end))
                 .willReturn(artistDump);
@@ -120,7 +121,7 @@ class DumpServiceImplTest {
 
         dumpService = new DumpServiceImpl(dumpRepository, dumpFetcher);
 
-        dump.setLastModified(OffsetDateTime.now());
+        dump.setLastModified(LocalDateTime.now());
         dummy = List.of(dump, dump, dump, dump, dump);
         given(dumpFetcher.getDiscogsDumps())
                 .willReturn(dummy);

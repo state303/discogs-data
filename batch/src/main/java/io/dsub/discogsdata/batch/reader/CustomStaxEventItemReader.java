@@ -3,6 +3,8 @@ package io.dsub.discogsdata.batch.reader;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemStream;
@@ -36,8 +38,14 @@ public class CustomStaxEventItemReader<T> implements ItemReader<T>, ItemStream, 
 
         Path target = Path.of(dump.getUri().split("/")[2]);
 
+        ProgressBarBuilder pbb = new ProgressBarBuilder()
+                .setTaskName("reading " + dump.getUri().split("/")[2])
+                .setUnit("MB", 1048576)
+                .setInitialMax(dump.getSize())
+                .showSpeed();
+
         this.nestedReader = new StaxEventItemReaderBuilder<T>()
-                .resource(new InputStreamResource(new GZIPInputStream(Files.newInputStream(target))))
+                .resource(new InputStreamResource(new GZIPInputStream(ProgressBar.wrap(Files.newInputStream(target), pbb))))
                 .name(dump.getRootElementName() + " reader " + dump.getEtag())
                 .addFragmentRootElements(dump.getRootElementName())
                 .unmarshaller(jaxb2Marshaller)
@@ -49,11 +57,11 @@ public class CustomStaxEventItemReader<T> implements ItemReader<T>, ItemStream, 
     public synchronized T read() throws Exception {
 //        count.addAndGet(1);
 //
-////        if (500 < count.get()) {
-////            log.debug("Exceeded 500 count. Returning null object");
-////            count = new AtomicInteger(0);
-////            return null;
-////        }
+//        if (500 < count.get()) {
+//            log.debug("Exceeded 500 count. Returning null object");
+//            count = new AtomicInteger(0);
+//            return null;
+//        }
 
         return nestedReader.read();
     }

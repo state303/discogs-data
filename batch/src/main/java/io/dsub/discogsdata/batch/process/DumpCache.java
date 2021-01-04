@@ -1,23 +1,34 @@
 package io.dsub.discogsdata.batch.process;
 
+import io.dsub.discogsdata.batch.xml.object.XmlRelease;
+import io.dsub.discogsdata.common.entity.Genre;
+import io.dsub.discogsdata.common.entity.Style;
 import io.dsub.discogsdata.common.entity.base.BaseEntity;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 @Slf4j
 @SuppressWarnings("unchecked")
-public class RelationsHolder {
+public class DumpCache {
 
     private static final Map<String, ConcurrentLinkedQueue<SimpleRelation>> SIMPLE_RELATIONS_MAP = new ConcurrentHashMap<>();
     private static final Map<String, ConcurrentLinkedQueue<BaseEntity>> OBJECT_RELATIONS_MAP = new ConcurrentHashMap<>();
 
+    private static final Map<String, Long> GENRES_MAP = new ConcurrentHashMap<>();
+    private static final Map<String, Long> STYLES_MAP = new ConcurrentHashMap<>();
+
     public void addSimpleRelation(Class<?> clazz, SimpleRelation simpleRelation) {
         makeIfAbsent(clazz.getSimpleName(), SIMPLE_RELATIONS_MAP);
         SIMPLE_RELATIONS_MAP.get(clazz.getSimpleName()).add(simpleRelation);
+    }
+
+    public void addSimpleRelation(Class<?> clazz, Object parent, Object child) {
+        makeIfAbsent(clazz.getSimpleName(), SIMPLE_RELATIONS_MAP);
+        SIMPLE_RELATIONS_MAP.get(clazz.getSimpleName()).add(new SimpleRelation(parent, child));
     }
 
     public <T extends BaseEntity> void addItem(Class<T> clazz, T item) {
@@ -57,5 +68,35 @@ public class RelationsHolder {
         if (!map.containsKey(key)) {
             map.put(key, new ConcurrentLinkedQueue<>());
         }
+    }
+
+    public Long getStyleId(String styleName) {
+        return STYLES_MAP.get(styleName);
+    }
+
+    public Long getGenreId(String genreName) {
+        return GENRES_MAP.get(genreName);
+    }
+
+    public void putGenre(String genreName, Long id) {
+        if (id == null) {
+            id = -1L;
+        }
+        GENRES_MAP.put(genreName, id);
+    }
+
+    public void putStyle(String styleName, Long id) {
+        if (id == null) {
+            id = -1L;
+        }
+        STYLES_MAP.put(styleName, id);
+    }
+
+    public Set<String> getGenresNames() {
+        return GENRES_MAP.keySet();
+    }
+
+    public Set<String> getStylesNames() {
+        return STYLES_MAP.keySet();
     }
 }

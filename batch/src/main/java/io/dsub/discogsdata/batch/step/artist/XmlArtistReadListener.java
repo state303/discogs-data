@@ -1,6 +1,6 @@
 package io.dsub.discogsdata.batch.step.artist;
 
-import io.dsub.discogsdata.batch.process.RelationsHolder;
+import io.dsub.discogsdata.batch.process.DumpCache;
 import io.dsub.discogsdata.batch.process.SimpleRelation;
 import io.dsub.discogsdata.batch.step.XmlObjectReadListener;
 import io.dsub.discogsdata.batch.xml.object.XmlArtist;
@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class XmlArtistReadListener extends XmlObjectReadListener<XmlArtist> {
 
-    public XmlArtistReadListener(RelationsHolder relationsHolder) {
-        super(relationsHolder);
+    public XmlArtistReadListener(DumpCache dumpCache) {
+        super(dumpCache);
     }
 
     @Override
@@ -21,7 +21,7 @@ public class XmlArtistReadListener extends XmlObjectReadListener<XmlArtist> {
             return;
         }
         item.getRelations().forEach(
-                ref -> relationsHolder.addSimpleRelation(
+                ref -> dumpCache.addSimpleRelation(
                         ref.getClass(), new SimpleRelation(item.getId(), ref.getId())));
     }
 }

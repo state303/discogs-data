@@ -1,6 +1,6 @@
 package io.dsub.discogsdata.batch.config;
 
-import io.dsub.discogsdata.batch.process.RelationsHolder;
+import io.dsub.discogsdata.batch.process.DumpCache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -16,7 +16,7 @@ public class AppConfig {
     @Primary
     public ThreadPoolTaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
+        executor.setCorePoolSize(12);
         executor.setMaxPoolSize(20);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setWaitForTasksToCompleteOnShutdown(Boolean.TRUE);
@@ -26,8 +26,8 @@ public class AppConfig {
     }
 
     @Bean
-    public RelationsHolder relationsHolder() {
-        return new RelationsHolder();
+    public DumpCache relationsHolder() {
+        return new DumpCache();
     }
 
     @Bean

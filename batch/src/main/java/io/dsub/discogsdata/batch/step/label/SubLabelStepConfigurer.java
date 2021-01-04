@@ -1,6 +1,6 @@
 package io.dsub.discogsdata.batch.step.label;
 
-import io.dsub.discogsdata.batch.process.RelationsHolder;
+import io.dsub.discogsdata.batch.process.DumpCache;
 import io.dsub.discogsdata.batch.process.SimpleRelation;
 import io.dsub.discogsdata.batch.xml.object.XmlLabel;
 import io.dsub.discogsdata.common.entity.label.Label;
@@ -34,7 +34,7 @@ public class SubLabelStepConfigurer {
     private final ThreadPoolTaskExecutor taskExecutor;
     private final LabelRepository labelRepository;
     private final LabelSubLabelRepository labelSubLabelRepository;
-    private final RelationsHolder relationsHolder;
+    private final DumpCache dumpCache;
 
     @Bean
     @JobScope
@@ -53,22 +53,22 @@ public class SubLabelStepConfigurer {
     @StepScope
     public ItemReader<SimpleRelation> subLabelReader() {
         ConcurrentLinkedQueue<SimpleRelation> queue =
-                relationsHolder.pullSimpleRelationsQueue(XmlLabel.SubLabel.class);
+                dumpCache.pullSimpleRelationsQueue(XmlLabel.SubLabel.class);
         return queue::poll;
     }
 
     @Bean
     public AsyncItemProcessor<SimpleRelation, LabelSubLabel> asyncSubLabelProcessor() throws Exception {
         ItemProcessor<SimpleRelation, LabelSubLabel> syncProcessor = item -> {
-            if (item.getParentId() == null ||
-                    item.getChildId() == null ||
-                    !labelRepository.existsById(item.getParentId()) ||
-                    !labelRepository.existsById(item.getChildId())) {
+            if (item.getParent() == null ||
+                    item.getChild() == null ||
+                    !labelRepository.existsById((Long) item.getParent()) ||
+                    !labelRepository.existsById((Long) item.getChild())) {
                 return null;
             }
 
-            Label parent = Label.builder().id(item.getParentId()).build();
-            Label child = Label.builder().id(item.getChildId()).build();
+            Label parent = Label.builder().id((Long) item.getParent()).build();
+            Label child = Label.builder().id((Long) item.getChild()).build();
 
             if (labelSubLabelRepository.existsByParentAndSubLabel(parent, child)) {
                 return null;

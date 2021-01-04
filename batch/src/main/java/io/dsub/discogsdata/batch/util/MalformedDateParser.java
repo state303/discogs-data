@@ -12,8 +12,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MalformedDateParser {
 
-    public static final Instant UNKNOWN =
-            getUTCInstant(LocalDate.of(1500, 1, 1));
+    public static final LocalDate UNKNOWN = LocalDate.of(1500, 1, 1);
 
     public static final String YEAR_PATTERN = "\\d{2}[a-zA-Z0-9]{2}";
     public static final String MONTH_PATTERN = "[a-zA-Z0-9]{0,2}";
@@ -30,7 +29,7 @@ public class MalformedDateParser {
      * NOTE: IF any malformed date is detected AND it does NOT have year info
      * >> the date will be parsed as Jan 01 1500.
      */
-    public static Instant parse(String dateString) {
+    public static LocalDate parse(String dateString) {
         try {
             if (dateString == null || dateString.isBlank()) return UNKNOWN;
 
@@ -41,7 +40,7 @@ public class MalformedDateParser {
 
             // 19XX, 199X, 1999
             if (dateString.matches("^" + YEAR_PATTERN + "$")) {
-                return getUTCInstantFromYear(replaceNonDigitFromYear(dateString));
+                return LocalDate.of(replaceNonDigitFromYear(dateString), 1, 1);
             }
 
             // 19XX-XX, 1999-XX, 1999-10
@@ -49,7 +48,7 @@ public class MalformedDateParser {
                 String[] parts = dateString.split("-");
                 int year = replaceNonDigitFromYear(parts[0]);
                 int month = replaceNonDigitFromMonth(parts[1]);
-                return getUTCInstant(LocalDate.of(year, month, 1));
+                return LocalDate.of(year, month, 1);
             }
 
             if (dateString.matches("^" + YEAR_PATTERN + "-" + MONTH_PATTERN + "-" + DATE_PATTERN + "$")) {
@@ -61,7 +60,7 @@ public class MalformedDateParser {
                 if (day > maxDay) {
                     day = 1;
                 }
-                return getUTCInstant(LocalDate.of(year, month, day));
+                return LocalDate.of(year, month, day);
             }
         } catch (Throwable ignored) {
             log.info("failed to parse date {}. proceeding with unknown date", dateString);

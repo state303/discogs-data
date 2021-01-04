@@ -13,7 +13,9 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.integration.async.AsyncItemWriter;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,36 +41,35 @@ public class MasterStepConfigurer {
                 .processor(asyncMasterProcessor())
                 .writer(asyncMasterWriter())
                 .listener(readListener)
-                .stream(masterReader(null))
                 .taskExecutor(taskExecutor)
+                .throttleLimit(10)
                 .build();
     }
 
     @Bean
     @StepScope
     public CustomStaxEventItemReader<XmlMaster> masterReader(@Value("#{jobParameters['master']}") String etag) throws Exception {
-        DiscogsDump labelDump = dumpService.getDumpByEtag(etag);
-        return new CustomStaxEventItemReader<>(XmlMaster.class, labelDump);
+        DiscogsDump masterDump = dumpService.getDumpByEtag(etag);
+        return new CustomStaxEventItemReader<>(XmlMaster.class, masterDump);
     }
 
     @Bean
     public AsyncItemProcessor<XmlMaster, Master> asyncMasterProcessor() {
+        ItemProcessor<XmlMaster, Master> processor = XmlMaster::toEntity;
         AsyncItemProcessor<XmlMaster, Master> asyncItemProcessor = new AsyncItemProcessor<>();
         asyncItemProcessor.setTaskExecutor(taskExecutor);
-        asyncItemProcessor.setDelegate(XmlMaster::toEntity);
+        asyncItemProcessor.setDelegate(processor);
         return asyncItemProcessor;
     }
 
     @Bean
     public AsyncItemWriter<Master> asyncMasterWriter() throws Exception {
-        RepositoryItemWriter<Master> syncWriter = new RepositoryItemWriter<>();
-        syncWriter.setRepository(masterRepository);
-        syncWriter.afterPropertiesSet();
-
-        AsyncItemWriter<Master> asyncMasterWriter = new AsyncItemWriter<>();
-        asyncMasterWriter.setDelegate(syncWriter);
-        asyncMasterWriter.afterPropertiesSet();
-        return asyncMasterWriter;
+        RepositoryItemWriter<Master> writer = new RepositoryItemWriterBuilder<Master>()
+                .repository(masterRepository)
+                .build();
+        AsyncItemWriter<Master> asyncItemWriter = new AsyncItemWriter<>();
+        asyncItemWriter.setDelegate(writer);
+        asyncItemWriter.afterPropertiesSet();
+        return asyncItemWriter;
     }
-
 }

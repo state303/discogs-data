@@ -1,5 +1,6 @@
 package io.dsub.discogsdata.common.entity;
 
+import io.dsub.discogsdata.common.entity.base.BaseEntity;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import lombok.*;
 
@@ -13,7 +14,8 @@ import javax.persistence.Id;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Style {
+@EqualsAndHashCode(callSuper = false)
+public class Style extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -1,4 +1,4 @@
-package io.dsub.discogsdata.batch.step.master;
+package io.dsub.discogsdata.batch.step.release;
 
 import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
@@ -19,40 +19,38 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class MasterFlowConfigurer {
+public class ReleaseFlowConfigurer {
 
-    private final Step masterStep;
-    private final Step masterArtistStep;
-    private final StepBuilderFactory stepBuilderFactory;
-    private final Step masterStylesGenresPreStep;
-    private final Step masterStyleStep;
-    private final Step masterGenreStep;
-    private final Step masterVideoStep;
     private final DumpService dumpService;
+    private final StepBuilderFactory stepBuilderFactory;
+    private final Step releaseArtistStep;
+    private final Step releaseCreditedArtistStep;
+    private final Step releaseStep;
+    private final Step releaseWorkStep;
+    private final Step releaseVideoStep;
 
     @Bean
     @JobScope
-    public Flow masterFlow(@Value("#{jobParameters['master']}") String etag) {
+    public Flow releaseFlow(@Value("#{jobParameters['release']}") String etag) {
         if (etag == null) {
             log.debug("etag is empty. skipping...");
             return new FlowBuilder<Flow>(this.toString()).build();
         }
 
-        return new FlowBuilder<Flow>("masterFlow " + etag)
-                .start(masterSourceStep(null))
-                .next(masterStep)
-                .next(masterVideoStep)
-                .next(masterStylesGenresPreStep)
-                .next(masterStyleStep)
-                .next(masterGenreStep)
-                .next(masterArtistStep)
-                .next(masterSourceCleanupStep(null))
+        return new FlowBuilder<Flow>("releaseFlow " + etag)
+                .start(releaseSourceStep(null))
+                .next(releaseStep)
+                .next(releaseCreditedArtistStep)
+                .next(releaseArtistStep)
+                .next(releaseWorkStep)
+                .next(releaseVideoStep)
+                .next(releaseSourceCleanupStep(null))
                 .build();
     }
 
     @Bean
     @JobScope
-    public Step masterSourceStep(@Value("#{jobParameters['master']}") String etag) {
+    public Step releaseSourceStep(@Value("#{jobParameters['release']}") String etag) {
         DiscogsDump dump;
         if (etag == null) {
             dump = dumpService.getMostRecentDumpByType(DumpType.ARTIST);
@@ -60,7 +58,7 @@ public class MasterFlowConfigurer {
         } else {
             dump = dumpService.getDumpByEtag(etag);
         }
-        return stepBuilderFactory.get("masterSourceStep " + etag)
+        return stepBuilderFactory.get("releaseSourceStep " + etag)
                 .tasklet(new FileCopyTasklet(dump))
                 .throttleLimit(1)
                 .build();
@@ -68,9 +66,10 @@ public class MasterFlowConfigurer {
 
     @Bean
     @JobScope
-    public Step masterSourceCleanupStep(@Value("#{jobParameters['master']}") String etag) {
-        return stepBuilderFactory.get("masterSourceCleanupStep")
-                .tasklet(new FileCleanupTasklet(dumpService.getDumpByEtag(etag)))
+    public Step releaseSourceCleanupStep(@Value("#{jobParameters['release']}") String etag) {
+        DiscogsDump dump = dumpService.getDumpByEtag(etag);
+        return stepBuilderFactory.get("releaseSourceCleanupStep " + etag)
+                .tasklet(new FileCleanupTasklet(dump))
                 .throttleLimit(1)
                 .build();
     }

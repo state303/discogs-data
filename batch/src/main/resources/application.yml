@@ -1,6 +1,9 @@
 spring:
   main:
     web-application-type: NONE
+  datasource:
+    hikari:
+      maximum-pool-size: 20
   batch:
     initialize-schema: ALWAYS
     job:

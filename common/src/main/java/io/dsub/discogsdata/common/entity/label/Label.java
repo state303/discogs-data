@@ -28,5 +28,6 @@ public class Label extends BaseTimeEntity {
 
     @ElementCollection
     @Builder.Default
+    @Column(columnDefinition = "TEXT")
     private List<String> urls = new ArrayList<>();
 }

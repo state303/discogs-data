@@ -1,6 +1,6 @@
 package io.dsub.discogsdata.batch.step.artist;
 
-import io.dsub.discogsdata.batch.process.RelationsHolder;
+import io.dsub.discogsdata.batch.process.DumpCache;
 import io.dsub.discogsdata.batch.process.SimpleRelation;
 import io.dsub.discogsdata.batch.xml.object.XmlArtist;
 import io.dsub.discogsdata.common.entity.artist.Artist;
@@ -30,7 +30,7 @@ import java.util.concurrent.Future;
 public class ArtistMemberStepConfigurer {
     private final StepBuilderFactory stepBuilderFactory;
     private final ThreadPoolTaskExecutor taskExecutor;
-    private final RelationsHolder relationsHolder;
+    private final DumpCache dumpCache;
     private final ArtistRepository artistRepository;
     private final ArtistMemberRepository artistMemberRepository;
 
@@ -51,7 +51,7 @@ public class ArtistMemberStepConfigurer {
     @StepScope
     public ItemReader<SimpleRelation> artistMemberItemReader() {
         ConcurrentLinkedQueue<SimpleRelation> queue =
-                relationsHolder.pullSimpleRelationsQueue(XmlArtist.Member.class);
+                dumpCache.pullSimpleRelationsQueue(XmlArtist.Member.class);
         return queue::poll;
     }
 
@@ -75,8 +75,8 @@ public class ArtistMemberStepConfigurer {
                 return null;
             }
 
-            Artist artist = Artist.builder().id(simpleRelation.getParentId()).build();
-            Artist member = Artist.builder().id(simpleRelation.getChildId()).build();
+            Artist artist = Artist.builder().id((Long) simpleRelation.getParent()).build();
+            Artist member = Artist.builder().id((Long) simpleRelation.getChild()).build();
 
             if (artistMemberRepository.existsByArtistAndMember(artist, member)) {
                 return null;
@@ -92,9 +92,9 @@ public class ArtistMemberStepConfigurer {
     }
 
     private boolean isValidRelation(SimpleRelation simpleRelation, CrudRepository<?, Long> repository) {
-        return simpleRelation.getParentId() != null &&
-                simpleRelation.getChildId() != null &&
-                repository.existsById(simpleRelation.getParentId()) &&
-                repository.existsById(simpleRelation.getChildId());
+        return simpleRelation.getParent() != null &&
+                simpleRelation.getChild() != null &&
+                repository.existsById((Long) simpleRelation.getParent()) &&
+                repository.existsById((Long) simpleRelation.getChild());
     }
 }

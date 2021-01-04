@@ -1,12 +1,10 @@
 package io.dsub.discogsdata.common.entity.master;
 
-import io.dsub.discogsdata.common.entity.Video;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import io.dsub.discogsdata.common.entity.release.ReleaseItem;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -21,26 +19,14 @@ public class Master extends BaseTimeEntity {
 
     private short year;
 
+    @Column(length = 2000)
     private String title;
 
     private String dataQuality;
 
-    /*
-     * Actual key to be injected. This makes possible to insert WITHOUT fetching
-     * the mapped object first (faster)
-     */
-    @Column(name = "release_item_id")
-    private Long releaseItemId;
+    @OneToOne
+    private ReleaseItem mainReleaseItem;
 
-    @OneToMany
-    @Builder.Default
-    private List<Video> videos = new ArrayList<>();
-
-    /*
-     * Convenient READ_ONLY access for actually mapped class.
-     * NOTE: mark any FetchType to avoid warning about immutability.
-     */
-    @JoinColumn(name = "release_item_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = ReleaseItem.class, fetch = FetchType.LAZY)
-    private ReleaseItem releaseItem;
+    @OneToMany(mappedBy = "master", orphanRemoval = true, cascade = {CascadeType.ALL})
+    private List<MasterVideo> videos;
 }

@@ -1,12 +1,10 @@
 package io.dsub.discogsdata.common.entity.master;
 
-import io.dsub.discogsdata.common.entity.Genre;
 import io.dsub.discogsdata.common.entity.Style;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import lombok.*;
 
 import javax.persistence.*;
-import java.io.Serializable;
 
 @Data
 @Entity

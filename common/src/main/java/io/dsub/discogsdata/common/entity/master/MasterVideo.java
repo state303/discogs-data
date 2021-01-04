@@ -1,6 +1,6 @@
 package io.dsub.discogsdata.common.entity.master;
 
-import io.dsub.discogsdata.common.entity.Video;
+import io.dsub.discogsdata.common.entity.base.BaseEntity;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import lombok.*;
 
@@ -13,16 +13,16 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MasterVideo extends BaseTimeEntity {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
+    @Column(length = 1000)
+    private String title;
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    @Column(columnDefinition = "TEXT")
+    private String url;
+    @ManyToOne
     @JoinColumn(name = "master_id")
-    @ManyToOne
     private Master master;
-
-    @JoinColumn(name = "video_id")
-    @ManyToOne
-    private Video video;
 }

@@ -1,6 +1,6 @@
 package io.dsub.discogsdata.batch.step.master;
 
-import io.dsub.discogsdata.batch.process.RelationsHolder;
+import io.dsub.discogsdata.batch.process.DumpCache;
 import io.dsub.discogsdata.batch.process.SimpleRelation;
 import io.dsub.discogsdata.batch.xml.object.XmlMaster;
 import io.dsub.discogsdata.common.entity.artist.Artist;
@@ -34,12 +34,12 @@ public class MasterArtistStepConfigurer {
     private final ThreadPoolTaskExecutor taskExecutor;
     private final MasterRepository masterRepository;
     private final ArtistRepository artistRepository;
-    private final RelationsHolder relationsHolder;
+    private final DumpCache dumpCache;
     private final MasterArtistRepository masterArtistRepository;
 
     @Bean
     @JobScope
-    public Step masterArtistStep(@Value("#{jobParameters['artist']}") String etag, @Value("#{jobParameters['chunkSize']}") int chunkSize) throws Exception {
+    public Step masterArtistStep(@Value("#{jobParameters['master']}") String etag, @Value("#{jobParameters['chunkSize']}") int chunkSize) throws Exception {
         return stepBuilderFactory.get("masterArtistStep " + etag)
                 .<SimpleRelation, Future<MasterArtist>>chunk(chunkSize)
                 .reader(masterArtistReader())
@@ -53,22 +53,22 @@ public class MasterArtistStepConfigurer {
     @StepScope
     public ItemReader<SimpleRelation> masterArtistReader() {
         ConcurrentLinkedQueue<SimpleRelation> queue =
-                relationsHolder.pullSimpleRelationsQueue(XmlMaster.ArtistInfo.class);
+                dumpCache.pullSimpleRelationsQueue(XmlMaster.ArtistInfo.class);
         return queue::poll;
     }
 
     @Bean
     public AsyncItemProcessor<SimpleRelation, MasterArtist> asyncMasterArtistProcessor() throws Exception {
         ItemProcessor<SimpleRelation, MasterArtist> syncProcessor = item -> {
-            if (item.getParentId() == null ||
-                    item.getChildId() == null ||
-                    !masterRepository.existsById(item.getParentId()) ||
-                    !artistRepository.existsById(item.getChildId())) {
+            if (item.getParent() == null ||
+                    item.getChild() == null ||
+                    !masterRepository.existsById((Long) item.getParent()) ||
+                    !artistRepository.existsById((Long) item.getChild())) {
                 return null;
             }
 
-            Master master = Master.builder().id(item.getParentId()).build();
-            Artist artist = Artist.builder().id(item.getChildId()).build();
+            Master master = Master.builder().id((Long) item.getParent()).build();
+            Artist artist = Artist.builder().id((Long) item.getChild()).build();
 
             if (masterArtistRepository.existsByMasterAndArtist(master, artist)) {
                 return null;

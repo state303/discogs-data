@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class SimpleRelation {
-    private final Long parentId;
-    private final Long childId;
+    private final Object parent;
+    private final Object child;
 }
