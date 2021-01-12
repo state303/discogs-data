@@ -23,11 +23,7 @@ public class ReleaseFlowConfigurer {
 
     private final DumpService dumpService;
     private final StepBuilderFactory stepBuilderFactory;
-    private final Step releaseArtistStep;
-    private final Step releaseCreditedArtistStep;
     private final Step releaseStep;
-    private final Step releaseWorkStep;
-    private final Step releaseVideoStep;
 
     @Bean
     @JobScope
@@ -40,10 +36,6 @@ public class ReleaseFlowConfigurer {
         return new FlowBuilder<Flow>("releaseFlow " + etag)
                 .start(releaseSourceStep(null))
                 .next(releaseStep)
-                .next(releaseCreditedArtistStep)
-                .next(releaseArtistStep)
-                .next(releaseWorkStep)
-                .next(releaseVideoStep)
                 .next(releaseSourceCleanupStep(null))
                 .build();
     }

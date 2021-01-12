@@ -79,11 +79,19 @@ public class XmlMaster extends XmlObject {
         private String description;
         @XmlAttribute(name = "src")
         private String url;
-        public MasterVideo toVideoEntity() {
+        public MasterVideo toMasterVideo() {
             return MasterVideo.builder()
                     .title(title)
                     .url(url)
                     .description(description)
+                    .build();
+        }
+        public MasterVideo toMasterVideo(Long masterId) {
+            return MasterVideo.builder()
+                    .title(title)
+                    .url(url)
+                    .description(description)
+                    .master(Master.builder().id(masterId).build())
                     .build();
         }
     }

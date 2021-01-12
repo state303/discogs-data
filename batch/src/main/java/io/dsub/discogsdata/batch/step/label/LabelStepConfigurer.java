@@ -2,7 +2,7 @@ package io.dsub.discogsdata.batch.step.label;
 
 import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
-import io.dsub.discogsdata.batch.reader.CustomStaxEventItemReader;
+import io.dsub.discogsdata.batch.reader.ProgressBarStaxEventItemReader;
 import io.dsub.discogsdata.batch.xml.object.XmlLabel;
 import io.dsub.discogsdata.common.entity.label.Label;
 import io.dsub.discogsdata.common.repository.label.LabelRepository;
@@ -28,7 +28,7 @@ public class LabelStepConfigurer {
     private final DumpService dumpService;
     private final ThreadPoolTaskExecutor taskExecutor;
     private final LabelRepository labelRepository;
-    private final XmlLabelReadListener readListener;
+    private final LabelDataProcessor labelDataProcessor;
 
     @Bean
     @JobScope
@@ -40,23 +40,35 @@ public class LabelStepConfigurer {
                 .reader(labelReader(null))
                 .processor(asyncLabelProcessor())
                 .writer(asyncLabelWriter())
-                .listener(readListener)
                 .taskExecutor(taskExecutor)
                 .build();
     }
 
     @Bean
     @StepScope
-    public CustomStaxEventItemReader<XmlLabel> labelReader(@Value("#{jobParameters['label']}") String etag) throws Exception {
+    public ProgressBarStaxEventItemReader<XmlLabel> labelReader(@Value("#{jobParameters['label']}") String etag) throws Exception {
         DiscogsDump labelDump = dumpService.getDumpByEtag(etag);
-        return new CustomStaxEventItemReader<>(XmlLabel.class, labelDump);
+        return new ProgressBarStaxEventItemReader<>(XmlLabel.class, labelDump);
     }
 
     @Bean
     public AsyncItemProcessor<XmlLabel, Label> asyncLabelProcessor() {
         AsyncItemProcessor<XmlLabel, Label> asyncItemProcessor = new AsyncItemProcessor<>();
         asyncItemProcessor.setTaskExecutor(taskExecutor);
-        asyncItemProcessor.setDelegate(XmlLabel::toEntity);
+        asyncItemProcessor.setDelegate(item -> {
+            item = labelDataProcessor.process(item);
+            if (item == null) {
+                return null;
+            }
+            return Label.builder()
+                    .id(item.getId())
+                    .dataQuality(item.getDataQuality())
+                    .profile(item.getProfile())
+                    .name(item.getName())
+                    .contactInfo(item.getContactInfo())
+                    .urls(item.getUrls())
+                    .build();
+        });
         return asyncItemProcessor;
     }
 

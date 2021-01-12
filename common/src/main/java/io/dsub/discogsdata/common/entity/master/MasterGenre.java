@@ -2,6 +2,7 @@ package io.dsub.discogsdata.common.entity.master;
 
 import io.dsub.discogsdata.common.entity.Genre;
 import io.dsub.discogsdata.common.entity.artist.Artist;
+import io.dsub.discogsdata.common.entity.base.BaseEntity;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import lombok.*;
 
@@ -14,7 +15,7 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class MasterGenre extends BaseTimeEntity {
+public class MasterGenre extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -3,10 +3,7 @@ package io.dsub.discogsdata.common.entity.artist;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,12 +22,14 @@ public class Artist extends BaseTimeEntity {
 
     @Builder.Default
     @ElementCollection
-    @Column(length = 2000)
-    private List<String> nameVariation = new ArrayList<>();
+    @Column(length = 2000, name = "name_variation")
+    @JoinTable(name = "artist_name_variation")
+    private List<String> nameVariations = new ArrayList<>();
 
     @Builder.Default
     @ElementCollection
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", name = "url")
+    @JoinTable(name = "artist_url")
     private List<String> urls = new ArrayList<>();
 
     @Column(columnDefinition = "LONGTEXT")

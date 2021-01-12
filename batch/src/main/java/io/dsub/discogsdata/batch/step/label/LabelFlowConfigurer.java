@@ -3,6 +3,7 @@ package io.dsub.discogsdata.batch.step.label;
 import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
 import io.dsub.discogsdata.batch.dump.enums.DumpType;
+import io.dsub.discogsdata.batch.step.FileCleanupTasklet;
 import io.dsub.discogsdata.batch.step.FileCopyTasklet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,9 @@ public class LabelFlowConfigurer {
 
     private final Step labelStep;
     private final Step subLabelStep;
+
+    private final Step labelSubLabelJdbcStep;
+    private final Step labelJdbcStep;
     private final DumpService dumpService;
     private final StepBuilderFactory stepBuilderFactory;
 
@@ -38,8 +42,8 @@ public class LabelFlowConfigurer {
 
         return new FlowBuilder<Flow>("labelFlow " + etag)
                 .start(labelSourceStep(null))
-                .next(labelStep)
-                .next(subLabelStep)
+                .next(labelJdbcStep)
+                .next(labelSubLabelJdbcStep)
                 .next(labelSourceCleanupStep(null))
                 .build();
     }
@@ -64,7 +68,7 @@ public class LabelFlowConfigurer {
     @JobScope
     public Step labelSourceCleanupStep(@Value("#{jobParameters['label']}") String etag) throws IOException {
         return stepBuilderFactory.get("labelSourceCleanupStep")
-                .tasklet(new FileCopyTasklet(dumpService.getDumpByEtag(etag)))
+                .tasklet(new FileCleanupTasklet(dumpService.getDumpByEtag(etag)))
                 .throttleLimit(1)
                 .build();
     }

@@ -2,8 +2,7 @@ spring:
   main:
     web-application-type: NONE
   datasource:
-    hikari:
-      maximum-pool-size: 20
+    driver-class-name: com.mysql.cj.jdbc.Driver
   batch:
     initialize-schema: ALWAYS
     job:
@@ -21,7 +20,6 @@ spring:
 logging:
   level:
     io.dsub: DEBUG
-#    org.springframework: DEBUG
 server:
   error:
     include-stacktrace: never

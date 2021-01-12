@@ -27,6 +27,6 @@ public class Master extends BaseTimeEntity {
     @OneToOne
     private ReleaseItem mainReleaseItem;
 
-    @OneToMany(mappedBy = "master", orphanRemoval = true, cascade = {CascadeType.ALL})
+    @OneToMany(mappedBy = "master", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<MasterVideo> videos;
 }

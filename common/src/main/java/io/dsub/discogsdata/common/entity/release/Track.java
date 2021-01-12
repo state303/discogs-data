@@ -14,7 +14,7 @@ import javax.persistence.*;
 @EqualsAndHashCode(callSuper = false)
 public class Track extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(columnDefinition = "TEXT")
     private String name;

@@ -2,7 +2,7 @@ package io.dsub.discogsdata.batch.step.master;
 
 import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
-import io.dsub.discogsdata.batch.reader.CustomStaxEventItemReader;
+import io.dsub.discogsdata.batch.reader.ProgressBarStaxEventItemReader;
 import io.dsub.discogsdata.batch.xml.object.XmlMaster;
 import io.dsub.discogsdata.common.entity.master.Master;
 import io.dsub.discogsdata.common.repository.master.MasterRepository;
@@ -16,6 +16,7 @@ import org.springframework.batch.integration.async.AsyncItemWriter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
+import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +31,6 @@ public class MasterStepConfigurer {
     private final DumpService dumpService;
     private final ThreadPoolTaskExecutor taskExecutor;
     private final MasterRepository masterRepository;
-    private final XmlMasterReadListener readListener;
 
     @Bean
     @JobScope
@@ -40,7 +40,6 @@ public class MasterStepConfigurer {
                 .reader(masterReader(null))
                 .processor(asyncMasterProcessor())
                 .writer(asyncMasterWriter())
-                .listener(readListener)
                 .taskExecutor(taskExecutor)
                 .throttleLimit(10)
                 .build();
@@ -48,9 +47,9 @@ public class MasterStepConfigurer {
 
     @Bean
     @StepScope
-    public CustomStaxEventItemReader<XmlMaster> masterReader(@Value("#{jobParameters['master']}") String etag) throws Exception {
+    public ProgressBarStaxEventItemReader<XmlMaster> masterReader(@Value("#{jobParameters['master']}") String etag) throws Exception {
         DiscogsDump masterDump = dumpService.getDumpByEtag(etag);
-        return new CustomStaxEventItemReader<>(XmlMaster.class, masterDump);
+        return new ProgressBarStaxEventItemReader<>(XmlMaster.class, masterDump);
     }
 
     @Bean

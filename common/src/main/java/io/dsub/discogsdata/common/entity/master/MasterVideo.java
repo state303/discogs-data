@@ -12,9 +12,9 @@ import javax.persistence.*;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class MasterVideo extends BaseTimeEntity {
+public class MasterVideo extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(length = 1000)
     private String title;

@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.xml.bind.annotation.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -12,7 +14,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = false)
 @XmlRootElement(name = "label")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class XmlLabel extends XmlObject {
+public class XmlLabel {
     @XmlElement(name = "id")
     private Long id;
     @XmlElement(name = "name")
@@ -25,35 +27,5 @@ public class XmlLabel extends XmlObject {
     private String dataQuality;
     @XmlElementWrapper(name = "urls")
     @XmlElement(name = "url")
-    private List<String> urls;
-    @XmlElementWrapper(name = "sublabels")
-    @XmlElement(name = "label")
-    private List<SubLabel> SubLabels;
-
-    @Override
-    public Label toEntity() {
-        String[] fields = new String[]{name, contactInfo, dataQuality, profile};
-        for (int i = 0; i < fields.length; i++) {
-            if (fields[i] != null && fields[i].isBlank()) {
-                fields[i] = null;
-            }
-        }
-        return Label.builder()
-                .id(id)
-                .name(fields[0])
-                .contactInfo(fields[1])
-                .dataQuality(fields[2])
-                .profile(fields[3])
-                .urls(urls)
-                .build();
-    }
-
-    @Data
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class SubLabel {
-        @XmlValue
-        private String name;
-        @XmlAttribute(name = "id")
-        private Long id;
-    }
+    private List<String> urls = new LinkedList<>();
 }

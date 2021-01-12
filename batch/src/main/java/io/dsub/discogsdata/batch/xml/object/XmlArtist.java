@@ -14,7 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @XmlRootElement(name = "artist")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class XmlArtist extends XmlObject {
+public class XmlArtist {
 
     @XmlElement(name = "id")
     private Long id;
@@ -35,61 +35,16 @@ public class XmlArtist extends XmlObject {
     @XmlElement(name = "name")
     private List<String> nameVariations = Collections.synchronizedList(new ArrayList<>());
 
-    @XmlElementWrapper(name = "aliases")
-    @XmlElement(name = "name")
-    private List<XmlArtist.Alias> aliases = Collections.synchronizedList(new ArrayList<>());
-
-    @XmlElementWrapper(name = "groups")
-    @XmlElement(name = "name")
-    private List<XmlArtist.Group> groups = Collections.synchronizedList(new ArrayList<>());
-
-    @XmlElementWrapper(name = "members")
-    @XmlElement(name = "name")
-    private List<XmlArtist.Member> members = Collections.synchronizedList(new ArrayList<>());
-
-    public Collection<XmlArtist.ArtistRef> getRelations() {
-        List<XmlArtist.ArtistRef> refs = new ArrayList<>(groups);
-        refs.addAll(members);
-        refs.addAll(aliases);
-        return refs;
-    }
-
-    public Artist toEntity() {
-        String[] fields = new String[]{name, realName, dataQuality, profile};
-
-        for (int i = 0; i < fields.length; i++) {
-            if (fields[i] != null && fields[i].isBlank()) {
-                fields[i] = null;
-            }
-        }
-
+    public Artist toArtist() {
         return Artist.builder()
                 .id(id)
-                .name(fields[0])
-                .realName(fields[1])
-                .dataQuality(fields[2])
-                .profile(fields[3])
-                .nameVariation(nameVariations)
+                .name(name)
+                .dataQuality(dataQuality)
+                .realName(realName)
+                .profile(profile)
                 .urls(urls)
+                .nameVariations(nameVariations)
                 .build();
-    }
-
-    @Data
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static abstract class ArtistRef {
-        @XmlValue
-        private String name;
-        @XmlAttribute(name = "id")
-        private Long id;
-    }
-
-    public static class Alias extends XmlArtist.ArtistRef {
-    }
-
-    public static class Group extends XmlArtist.ArtistRef {
-    }
-
-    public static class Member extends XmlArtist.ArtistRef {
     }
 }
 

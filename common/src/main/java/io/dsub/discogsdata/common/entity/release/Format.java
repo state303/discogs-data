@@ -15,7 +15,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = false)
 public class Format extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private Integer qty;

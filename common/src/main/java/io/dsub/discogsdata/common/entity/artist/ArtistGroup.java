@@ -1,5 +1,6 @@
 package io.dsub.discogsdata.common.entity.artist;
 
+import io.dsub.discogsdata.common.entity.base.BaseEntity;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import lombok.*;
 import org.hibernate.annotations.Immutable;
@@ -13,7 +14,7 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ArtistGroup extends BaseTimeEntity {
+public class ArtistGroup extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

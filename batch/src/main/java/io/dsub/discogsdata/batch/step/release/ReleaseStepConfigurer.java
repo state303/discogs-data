@@ -2,8 +2,7 @@ package io.dsub.discogsdata.batch.step.release;
 
 import io.dsub.discogsdata.batch.dump.DumpService;
 import io.dsub.discogsdata.batch.dump.entity.DiscogsDump;
-import io.dsub.discogsdata.batch.reader.CustomStaxEventItemReader;
-import io.dsub.discogsdata.batch.xml.object.XmlMaster;
+import io.dsub.discogsdata.batch.reader.ProgressBarStaxEventItemReader;
 import io.dsub.discogsdata.batch.xml.object.XmlRelease;
 import io.dsub.discogsdata.common.entity.release.ReleaseItem;
 import io.dsub.discogsdata.common.repository.release.ReleaseRepository;
@@ -32,7 +31,6 @@ public class ReleaseStepConfigurer {
     private final ReleaseRepository releaseRepository;
     private final DumpService dumpService;
     private final ThreadPoolTaskExecutor taskExecutor;
-    private final XmlReleaseReadListener readListener;
 
     @Bean
     @JobScope
@@ -42,16 +40,15 @@ public class ReleaseStepConfigurer {
                 .reader(releaseItemReader(null))
                 .processor(asyncReleaseItemProcessor())
                 .writer(asyncReleaseItemWriter())
-                .listener(readListener)
                 .taskExecutor(taskExecutor)
                 .build();
     }
 
     @Bean
     @StepScope
-    public CustomStaxEventItemReader<XmlRelease> releaseItemReader(@Value("#{jobParameters['release']}") String etag) throws Exception {
+    public ProgressBarStaxEventItemReader<XmlRelease> releaseItemReader(@Value("#{jobParameters['release']}") String etag) throws Exception {
         DiscogsDump releaseDump = dumpService.getDumpByEtag(etag);
-        return new CustomStaxEventItemReader<>(XmlRelease.class, releaseDump);
+        return new ProgressBarStaxEventItemReader<>(XmlRelease.class, releaseDump);
     }
 
     @Bean

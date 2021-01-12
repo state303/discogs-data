@@ -21,14 +21,11 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class MasterFlowConfigurer {
 
-    private final Step masterStep;
-    private final Step masterArtistStep;
     private final StepBuilderFactory stepBuilderFactory;
-    private final Step masterStylesGenresPreStep;
-    private final Step masterStyleStep;
-    private final Step masterGenreStep;
-    private final Step masterVideoStep;
     private final DumpService dumpService;
+
+    private final Step masterJdbcPreStep;
+    private final Step masterJdbcStep;
 
     @Bean
     @JobScope
@@ -40,12 +37,8 @@ public class MasterFlowConfigurer {
 
         return new FlowBuilder<Flow>("masterFlow " + etag)
                 .start(masterSourceStep(null))
-                .next(masterStep)
-                .next(masterVideoStep)
-                .next(masterStylesGenresPreStep)
-                .next(masterStyleStep)
-                .next(masterGenreStep)
-                .next(masterArtistStep)
+                .next(masterJdbcPreStep)
+                .next(masterJdbcStep)
                 .next(masterSourceCleanupStep(null))
                 .build();
     }

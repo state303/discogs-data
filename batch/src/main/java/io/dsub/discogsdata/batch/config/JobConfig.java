@@ -16,12 +16,15 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Configuration
@@ -33,7 +36,6 @@ public class JobConfig {
     private final Flow labelFlow;
     private final Flow masterFlow;
     private final Flow releaseFlow;
-    private final Step masterMainReleaseStep;
 
     @Bean
     public Job job() {
@@ -41,10 +43,10 @@ public class JobConfig {
                 .incrementer(new RunIdIncrementer())
                 .validator(discogsJobParametersValidator)
 //                .start(artistFlow)
-//                .start(labelFlow)
+//                .next(labelFlow)
                 .start(masterFlow)
-                .next(releaseFlow)
-                .next(masterMainReleaseStep)
+//                .next(releaseFlow)
+//                .next(masterMainReleaseStep)
                 .end()
                 .listener(new JobExecutionListener() {
                     public void beforeJob(JobExecution jobExecution) {
@@ -53,7 +55,6 @@ public class JobConfig {
                         System.exit(0);
                     }
                 })
-
                 .build();
     }
 }
