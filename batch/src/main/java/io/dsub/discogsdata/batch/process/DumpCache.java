@@ -1,15 +1,11 @@
 package io.dsub.discogsdata.batch.process;
 
-import io.dsub.discogsdata.batch.xml.object.XmlRelease;
-import io.dsub.discogsdata.common.entity.Genre;
-import io.dsub.discogsdata.common.entity.Style;
 import io.dsub.discogsdata.common.entity.base.BaseEntity;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 @Slf4j
 @SuppressWarnings("unchecked")

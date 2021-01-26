@@ -73,6 +73,6 @@ public class ArtistRelationsJdbcItemWriter implements ItemWriter<XmlArtistRelati
         if (data.isEmpty()) {
             return;
         }
-        jdbcTemplate.batchUpdate(sql, new SimpleRelationsBatchPss(data));
+        jdbcTemplate.batchUpdate(sql, new SimpleRelationsBatchPss(data, 1));
     }
 }

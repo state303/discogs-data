@@ -60,6 +60,6 @@ public class LabelSubLabelJdbcItemWriter implements ItemWriter<List<SimpleRelati
 
         jdbcTemplate.batchUpdate(
                 "INSERT INTO label_sublabel(parent_label_id, sub_label_id) VALUES (?, ?)",
-                new SimpleRelationsBatchPss(simpleRelations));
+                new SimpleRelationsBatchPss(simpleRelations, 1));
     }
 }

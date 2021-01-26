@@ -23,7 +23,8 @@ public class ReleaseFlowConfigurer {
 
     private final DumpService dumpService;
     private final StepBuilderFactory stepBuilderFactory;
-    private final Step releaseStep;
+    private final Step releaseItemJdbcStep;
+    private final Step releaseItemJdbcPostStep;
 
     @Bean
     @JobScope
@@ -35,7 +36,8 @@ public class ReleaseFlowConfigurer {
 
         return new FlowBuilder<Flow>("releaseFlow " + etag)
                 .start(releaseSourceStep(null))
-                .next(releaseStep)
+                .next(releaseItemJdbcStep)
+                .next(releaseItemJdbcPostStep)
                 .next(releaseSourceCleanupStep(null))
                 .build();
     }

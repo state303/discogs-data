@@ -4,7 +4,7 @@ import io.dsub.discogsdata.batch.dump.enums.DumpType;
 import io.dsub.discogsdata.batch.xml.object.XmlArtist;
 import io.dsub.discogsdata.batch.xml.object.XmlLabel;
 import io.dsub.discogsdata.batch.xml.object.XmlMaster;
-import io.dsub.discogsdata.batch.xml.object.XmlRelease;
+import io.dsub.discogsdata.batch.xml.object.XmlReleaseItem;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ public class XmlUnmarshallerRegistry {
         register(DumpType.ARTIST, make(XmlArtist.class));
         register(DumpType.LABEL, make(XmlLabel.class));
         register(DumpType.MASTER, make(XmlMaster.class));
-        register(DumpType.RELEASE, make(XmlRelease.class));
+        register(DumpType.RELEASE, make(XmlReleaseItem.class));
     }
 
     private Unmarshaller make(Class<?> classToBeBound) {

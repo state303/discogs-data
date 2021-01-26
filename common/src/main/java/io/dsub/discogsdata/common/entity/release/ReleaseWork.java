@@ -1,5 +1,6 @@
 package io.dsub.discogsdata.common.entity.release;
 
+import io.dsub.discogsdata.common.entity.base.BaseEntity;
 import io.dsub.discogsdata.common.entity.base.BaseTimeEntity;
 import io.dsub.discogsdata.common.entity.label.Label;
 import lombok.*;
@@ -13,7 +14,7 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReleaseWork extends BaseTimeEntity {
+public class ReleaseWork extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

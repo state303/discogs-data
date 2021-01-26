@@ -5,6 +5,10 @@ import io.dsub.discogsdata.common.entity.release.ReleaseCreditedArtist;
 import io.dsub.discogsdata.common.entity.release.ReleaseItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface ReleaseCreditedArtistRepository extends JpaRepository<ReleaseCreditedArtist, Long> {
     boolean existsByArtistAndReleaseItem(Artist artist, ReleaseItem releaseItem);
+    boolean existsByArtistIdAndReleaseItemId(Long artistId, Long releaseItemId);
+    List<ReleaseCreditedArtist> findAllByReleaseItemId(Long releaseItemId);
 }

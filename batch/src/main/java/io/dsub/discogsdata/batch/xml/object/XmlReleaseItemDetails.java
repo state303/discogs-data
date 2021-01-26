@@ -14,22 +14,10 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(callSuper = false)
 @XmlRootElement(name = "release")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class XmlRelease extends XmlObject {
+public class XmlReleaseItemDetails {
 
     @XmlAttribute(name = "id")
     private Long releaseId;
-    @XmlAttribute(name = "status")
-    private String status;
-    @XmlElement(name = "title")
-    private String title;
-    @XmlElement(name = "country")
-    private String country;
-    @XmlElement(name = "notes")
-    private String notes;
-    @XmlElement(name = "data_quality")
-    private String dataQuality;
-    @XmlElement(name = "master_id")
-    private Master master;
 
     @XmlElementWrapper(name = "genres")
     @XmlElement(name = "genre")
@@ -44,7 +32,7 @@ public class XmlRelease extends XmlObject {
 
     @XmlElementWrapper(name = "artists")
     @XmlElement(name = "artist")
-    private Set<AlbumArtist> albumArtists;
+    private Set<AlbumArtist> releaseArtists;
 
     @XmlElementWrapper(name = "extraartists")
     @XmlElement(name = "artist")
@@ -74,35 +62,6 @@ public class XmlRelease extends XmlObject {
     @XmlElement(name = "video")
     private Set<Video> videos = new HashSet<>();
 
-    @Override
-    public ReleaseItem toEntity() {
-        return ReleaseItem.builder()
-                .id(releaseId)
-                .isMaster(master.isMaster)
-                .status(status)
-                .title(title)
-                .country(country)
-                .notes(notes)
-                .dataQuality(dataQuality)
-                .identifiers(identifiers.stream()
-                        .map(identifier -> io.dsub.discogsdata.common.entity.release.Identifier.builder()
-                                .description(identifier.description)
-                                .type(identifier.type)
-                                .value(identifier.value)
-                                .build())
-                        .collect(Collectors.toList()))
-                .formats(formats.stream()
-                        .map(format -> io.dsub.discogsdata.common.entity.release.Format.builder()
-                        .description(format.description)
-                        .name(format.name)
-                        .qty(format.qty)
-                        .text(format.text)
-                        .build())
-                        .collect(Collectors.toList()))
-                .releaseDate(MalformedDateParser.parse(releaseDate))
-                .build();
-    }
-
     @Data
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class AlbumArtist {
@@ -127,7 +86,7 @@ public class XmlRelease extends XmlObject {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class Label {
         @XmlAttribute(name = "catno")
-        private String catno;
+        private String categoryNumber;
         @XmlAttribute(name = "id")
         private Long id;
         @XmlAttribute(name = "name")
@@ -190,14 +149,5 @@ public class XmlRelease extends XmlObject {
         private String description;
         @XmlAttribute(name = "src")
         private String url;
-    }
-
-    @Data
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class Master {
-        @XmlValue
-        private Long masterId;
-        @XmlAttribute(name = "is_main_release")
-        private boolean isMaster;
     }
 }

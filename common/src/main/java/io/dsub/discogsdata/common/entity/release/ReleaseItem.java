@@ -35,10 +35,12 @@ public class ReleaseItem extends BaseTimeEntity {
 
     @Builder.Default
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinTable(name = "release_item_identifier")
     private List<Identifier> identifiers = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinTable(name = "release_item_format")
     private List<Format> formats = new ArrayList<>();
 
     @ManyToOne

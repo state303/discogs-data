@@ -4,6 +4,7 @@ import io.dsub.discogsdata.batch.process.SimpleRelation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 
+import javax.validation.constraints.Min;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
@@ -12,11 +13,15 @@ import java.util.List;
 public class SimpleRelationsBatchPss implements BatchPreparedStatementSetter {
 
     private final List<SimpleRelation> simpleRelations;
+    @Min(1)
+    private final int repeatCount;
 
     @Override
     public void setValues(PreparedStatement ps, int i) throws SQLException {
-        ps.setLong(1, (Long) simpleRelations.get(i).getParent());
-        ps.setLong(2, (Long) simpleRelations.get(i).getChild());
+        for (int j = 0; j < repeatCount; j++) {
+            ps.setLong(j * 2 + 1, (Long) simpleRelations.get(i).getParent());
+            ps.setLong(j * 2 + 2, (Long) simpleRelations.get(i).getChild());
+        }
     }
 
     /**

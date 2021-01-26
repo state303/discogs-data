@@ -55,16 +55,12 @@ public class MasterJdbcItemWriter implements ItemWriter<XmlMaster> {
     public void write(List<? extends XmlMaster> items) {
         Map<Boolean, List<XmlMaster>> listMap = items.stream()
                 .collect(Collectors.groupingByConcurrent(item -> masterRepository.existsById(item.getId())));
+
         List<XmlMaster> mastersToUpdate = listMap.get(true);
         List<XmlMaster> mastersToInsert = listMap.get(false);
 
-        if (mastersToInsert != null && mastersToInsert.size() > 0) {
-            insertMasters(mastersToInsert);
-        }
-
-        if (mastersToUpdate != null && mastersToUpdate.size() > 0) {
-            updateMasters(mastersToUpdate);
-        }
+        insertMasters(mastersToInsert);
+        updateMasters(mastersToUpdate);
 
         pruneMasterVideos(items);
 
@@ -150,7 +146,7 @@ public class MasterJdbcItemWriter implements ItemWriter<XmlMaster> {
     private void insertMasterArtists(List<SimpleRelation> masterArtists) {
         jdbcTemplate.batchUpdate(
                 "INSERT INTO master_artist(artist_id, master_id) VALUES (?, ?)",
-                new SimpleRelationsBatchPss(masterArtists));
+                new SimpleRelationsBatchPss(masterArtists, 1));
     }
 
     private void pruneMasterArtists(List<? extends XmlMaster> masters) {
@@ -195,25 +191,31 @@ public class MasterJdbcItemWriter implements ItemWriter<XmlMaster> {
         });
     }
 
-    private void insertMasters(List<XmlMaster> items) {
+    private void insertMasters(List<XmlMaster> masters) {
+        if (masters == null || masters.isEmpty()) {
+            return;
+        }
         jdbcTemplate.batchUpdate(INSERT_MASTER_SQL, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setLong(1, items.get(i).getId());
-                ps.setString(2, items.get(i).getDataQuality());
-                ps.setString(3, items.get(i).getTitle());
-                ps.setShort(4, items.get(i).getYear());
-                ps.setLong(5, items.get(i).getMainRelease());
+                ps.setLong(1, masters.get(i).getId());
+                ps.setString(2, masters.get(i).getDataQuality());
+                ps.setString(3, masters.get(i).getTitle());
+                ps.setShort(4, masters.get(i).getYear());
+                ps.setLong(5, masters.get(i).getMainRelease());
             }
 
             @Override
             public int getBatchSize() {
-                return items.size();
+                return masters.size();
             }
         });
     }
 
     private void updateMasters(List<XmlMaster> masters) {
+        if (masters == null || masters.isEmpty()) {
+            return;
+        }
         jdbcTemplate.batchUpdate(UPDATE_MASTER_SQL, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
